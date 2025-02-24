@@ -1,0 +1,9 @@
+- User can create an "app"
+- User's app has unique name
+- User can set app values
+- User can pick a single app layout
+- app is viewable on subdomain
+- User can view preview of app
+- User can pick two app layouts
+- App handles waitlist submissions
+- User can view waitlist submissions in dashboard
