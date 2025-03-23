@@ -1,7 +1,9 @@
-import { Button } from '@/components/ui/button';
 import { type Auth, type SharedData } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { ArrowRight, CheckCircle2 } from 'lucide-react';
+
+// Use the declaration from app.tsx, where route is declared as a global
+declare const route: (name: string, params?: Record<string, any>) => string;
 
 export default function Landing() {
   const { auth } = usePage<SharedData>().props;
@@ -38,16 +40,16 @@ export default function Landing() {
             </div>
             <nav className="flex items-center gap-4">
               {auth.user ? (
-                <Link href={route('dashboard')}>
-                  <Button>Go to Dashboard</Button>
+                <Link href={route('dashboard')} className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 h-10 px-4 py-2">
+                  Go to Dashboard
                 </Link>
               ) : (
                 <>
-                  <Link href={route('login')}>
-                    <Button variant="ghost">Log in</Button>
+                  <Link href={route('login')} className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
+                    Log in
                   </Link>
-                  <Link href={route('register')}>
-                    <Button>Sign up</Button>
+                  <Link href={route('register')} className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 h-10 px-4 py-2">
+                    Sign up
                   </Link>
                 </>
               )}
@@ -68,22 +70,16 @@ export default function Landing() {
                 </p>
                 <div className="flex flex-wrap justify-center gap-4">
                   {auth.user ? (
-                    <Link href={route('dashboard')}>
-                      <Button size="lg" className="gap-2">
-                        Go to Dashboard <ArrowRight className="h-4 w-4" />
-                      </Button>
+                    <Link href={route('dashboard')} className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 h-11 rounded-md px-8">
+                      Go to Dashboard <ArrowRight className="h-4 w-4" />
                     </Link>
                   ) : (
                     <>
-                      <Link href={route('register')}>
-                        <Button size="lg" className="gap-2">
-                          Get Started <ArrowRight className="h-4 w-4" />
-                        </Button>
+                      <Link href={route('register')} className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 h-11 rounded-md px-8">
+                        Get Started <ArrowRight className="h-4 w-4" />
                       </Link>
-                      <Link href={route('login')}>
-                        <Button size="lg" variant="outline">
-                          Log in to your account
-                        </Button>
+                      <Link href={route('login')} className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-11 rounded-md px-8">
+                        Log in to your account
                       </Link>
                     </>
                   )}
@@ -112,8 +108,8 @@ export default function Landing() {
                     ))}
                   </ul>
                   <div className="pt-4">
-                    <Link href={route('register')}>
-                      <Button>Get Started</Button>
+                    <Link href={route('register')} className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 h-10 px-4 py-2">
+                      Get Started
                     </Link>
                   </div>
                 </div>
@@ -135,7 +131,9 @@ export default function Landing() {
                           className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                         />
                       </div>
-                      <Button className="w-full">Join the waitlist</Button>
+                      <Link href="#" className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 h-11 rounded-md px-8">
+                        Join the waitlist
+                      </Link>
                     </div>
                     <p className="text-xs text-muted-foreground">
                       By signing up, you agree to our <a href="#" className="underline underline-offset-4">Terms of Service</a> and <a href="#" className="underline underline-offset-4">Privacy Policy</a>.
@@ -158,16 +156,16 @@ export default function Landing() {
                 </p>
                 <div className="flex flex-col justify-center gap-4 sm:flex-row">
                   {auth.user ? (
-                    <Link href={route('dashboard')}>
-                      <Button size="lg">Go to Dashboard</Button>
+                    <Link href={route('dashboard')} className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 h-11 rounded-md px-8">
+                      Go to Dashboard
                     </Link>
                   ) : (
                     <>
-                      <Link href={route('register')}>
-                        <Button size="lg">Create your waitlist</Button>
+                      <Link href={route('register')} className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 h-11 rounded-md px-8">
+                        Create your waitlist
                       </Link>
-                      <Link href={route('login')}>
-                        <Button size="lg" variant="outline">Sign in</Button>
+                      <Link href={route('login')} className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-11 rounded-md px-8">
+                        Sign in
                       </Link>
                     </>
                   )}

@@ -1,0 +1,94 @@
+# Laravel 12 & React TypeScript Development Rules
+
+laravel:
+  version: "12.x"
+  conventions:
+    - Use PHP 8.3+ features and type hints
+    - Follow PSR-12 coding standards
+    - Use Laravel Pint for code formatting
+    - Implement Repository pattern for data access
+    - Use Laravel Sanctum for API authentication
+    - Implement API Resources for response transformation
+    - Use Form Requests for validation
+    - Implement Queue workers for long-running tasks
+    - Use Laravel's built-in caching mechanisms
+
+react:
+  version: "^19.0.0"
+  typescript: true
+  conventions:
+    - Use functional components with hooks
+    - Implement proper prop typing
+    - Use Inertia.js to fetch data
+    - Implement error boundaries
+    - Use React.Suspense for code-splitting
+    - Follow React 19 concurrent features best practices
+
+typescript:
+  strict: true
+  rules:
+    - No any types unless absolutely necessary
+    - Use interface for object types
+    - Implement proper type guards
+    - Use generics for reusable components
+    - Define proper return types for all functions
+
+design:
+  conventions:
+    - Use tailwind css
+    - Use designs from tailwind ui
+    - Use shadcn elements and components
+    - Make designs configurable by the user with primary and secondary colors
+    - Enable light-mode and dark-mode
+    - Emulate modern professional designs like revult.com, stripe.com, and tailwindcss.com/plus
+
+accessibility:
+  requirements:
+    - Meet WCAG 2.2 Level AA standards
+    - Implement proper ARIA attributes
+    - Ensure keyboard navigation
+    - Maintain proper heading hierarchy
+    - Use semantic HTML elements
+    - Provide alt text for images
+    - Ensure sufficient color contrast
+    - Support screen readers
+
+testing:
+  backend:
+    - PHPUnit for unit and feature tests
+    - Pest for behavior-driven tests
+    - Test all API endpoints
+    - Mock external services
+    - Test database operations
+  frontend:
+    - Jest for unit testing
+    - React Testing Library for component tests
+    - Playwright for E2E testing
+    - Test all user interactions
+    - Test accessibility compliance
+    - Implement visual regression testing
+    - Use Playwright's built-in debugging tools
+
+code_quality:
+  tools:
+    - ESLint with TypeScript rules
+    - Prettier for JavaScript/TypeScript
+    - Laravel Pint for PHP
+    - PHPStan for static analysis
+    - Husky for pre-commit hooks
+
+git:
+  conventions:
+    - Use conventional commits
+    - Branch naming: feature/, bugfix/, hotfix/
+    - Squash commits before merging
+    - Write descriptive PR descriptions
+    - Include test coverage in PRs
+
+ci_cd:
+  requirements:
+    - Run all tests before merge
+    - Check code style compliance
+    - Verify TypeScript compilation
+    - Run security checks
+    - Deploy to staging for review

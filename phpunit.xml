@@ -1,8 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
-         bootstrap="vendor/autoload.php"
+         bootstrap="tests/bootstrap.php"
          colors="true"
+         beStrictAboutChangesToGlobalState="false"
+         beStrictAboutOutputDuringTests="false"
+         beStrictAboutTestsThatDoNotTestAnything="false"
+         displayDetailsOnTestsThatTriggerWarnings="false"
+         displayDetailsOnTestsThatTriggerNotices="false"
+         displayDetailsOnTestsThatTriggerErrors="true"
+         displayDetailsOnTestsThatTriggerDeprecations="false"
+         displayDetailsOnSkippedTests="false"
 >
     <testsuites>
         <testsuite name="Unit">
@@ -29,5 +37,6 @@
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
+        <env name="APP_DOMAIN" value="waitlist.test"/>
     </php>
 </phpunit>
