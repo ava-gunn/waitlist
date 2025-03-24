@@ -9,7 +9,12 @@ Route::get('/', function () {
 
 Route::middleware(['auth'])->group(function () {
     Route::get('dashboard', function () {
-        return Inertia::render('dashboard');
+        $user = auth()->user();
+        $projects = $user->projects()->with('signups')->withCount('signups')->latest()->take(5)->get();
+
+        return Inertia::render('dashboard', [
+            'recentProjects' => $projects,
+        ]);
     })->name('dashboard');
 });
 

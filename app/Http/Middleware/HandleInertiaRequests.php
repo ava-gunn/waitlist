@@ -38,6 +38,17 @@ class HandleInertiaRequests extends Middleware
     {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
 
+        // Get authenticated user's projects for the sidebar
+        $userProjects = [];
+        if ($request->user()) {
+            $userProjects = $request->user()->projects()
+                ->select('id', 'name')
+                ->latest()
+                ->limit(10)
+                ->get()
+                ->toArray();
+        }
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
@@ -45,6 +56,8 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            // Add user's projects for the sidebar dropdown
+            'projects' => $userProjects,
         ];
     }
 }

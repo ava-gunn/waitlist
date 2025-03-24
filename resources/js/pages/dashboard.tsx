@@ -6,7 +6,31 @@ import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { AlertCircle, ArrowRight, PlusCircle } from 'lucide-react';
+import { AlertCircle, ArrowRight, CalendarDays, Clock, ExternalLink, PlusCircle } from 'lucide-react';
+
+// Define the Project interface inline to avoid import issues
+interface Project {
+    id: number;
+    name: string;
+    subdomain: string;
+    description?: string;
+    logo_path?: string;
+    settings?: {
+        theme?: string;
+        collect_name?: boolean;
+        social_sharing?: boolean;
+    };
+    is_active: boolean;
+    created_at?: string;
+    updated_at?: string;
+    signups_count?: number;
+}
+
+interface DashboardProps {
+    recentProjects?: {
+        data: Project[];
+    } | Project[];
+}
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -15,7 +39,15 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function Dashboard() {
+export default function Dashboard({ recentProjects = [] }: DashboardProps) {
+    // Add debugging to check what projects data is being received
+    console.log('Dashboard recentProjects:', recentProjects);
+    
+    // Process projects data to handle both array and object with data property
+    const projectsData = Array.isArray(recentProjects)
+        ? recentProjects
+        : recentProjects?.data || [];
+
     const { data, setData, post, processing, errors } = useForm({
         name: '',
         subdomain: '',
@@ -134,22 +166,71 @@ export default function Dashboard() {
 
                     <Card>
                         <CardHeader>
-                            <CardTitle>Recent Activity</CardTitle>
+                            <CardTitle>Recent Projects</CardTitle>
                             <CardDescription>
-                                Recent signups and activity across your projects
+                                Your most recent projects
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="border-sidebar-border/70 dark:border-sidebar-border relative h-[300px] flex-1 rounded-xl border">
-                                <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-                                <div className="absolute inset-0 flex items-center justify-center flex-col gap-4">
-                                    <PlusCircle className="size-12 text-muted-foreground/50" />
-                                    <p className="text-muted-foreground">No recent activity</p>
-                                    <Button asChild>
-                                        <Link href="/projects">View All Projects</Link>
-                                    </Button>
+                            {projectsData.length > 0 ? (
+                                <div className="space-y-4">
+                                    {projectsData.map((project: Project) => (
+                                        <div key={project.id} className="flex items-start space-x-4 rounded-md border p-3 transition-colors hover:bg-muted/50">
+                                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-primary/10">
+                                                <div
+                                                    className="h-full w-full rounded-md bg-cover bg-center"
+                                                    style={{
+                                                        backgroundColor: project.settings?.theme === 'dark' ? '#1f2937' : '#f3f4f6',
+                                                        backgroundImage: project.logo_path ? `url(${project.logo_path})` : undefined,
+                                                    }}
+                                                    aria-hidden="true"
+                                                />
+                                            </div>
+                                            <div className="flex-1 space-y-1">
+                                                <Link 
+                                                    href={`/projects/${project.id}`}
+                                                    className="font-medium text-foreground hover:underline flex items-center"
+                                                >
+                                                    {project.name}
+                                                    <ExternalLink className="ml-1 size-3.5 text-muted-foreground" />
+                                                </Link>
+                                                <div className="text-sm text-muted-foreground">
+                                                    <span className="flex items-center gap-1.5">
+                                                        <CalendarDays className="size-3.5" />
+                                                        Created {new Date(project.created_at || '').toLocaleDateString()}
+                                                    </span>
+                                                </div>
+                                                {project.signups_count !== undefined && (
+                                                    <div className="text-sm">
+                                                        <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold">
+                                                            {project.signups_count} {project.signups_count === 1 ? 'signup' : 'signups'}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                    
+                                    <div className="pt-2">
+                                        <Button asChild variant="outline" className="w-full" size="sm">
+                                            <Link href="/projects" className="flex items-center justify-center gap-1">
+                                                View All Projects <ArrowRight className="size-3.5" />
+                                            </Link>
+                                        </Button>
+                                    </div>
                                 </div>
-                            </div>
+                            ) : (
+                                <div className="border-sidebar-border/70 dark:border-sidebar-border relative h-[300px] flex-1 rounded-xl border">
+                                    <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
+                                    <div className="absolute inset-0 flex items-center justify-center flex-col gap-4">
+                                        <PlusCircle className="size-12 text-muted-foreground/50" />
+                                        <p className="text-muted-foreground">No projects yet</p>
+                                        <Button asChild>
+                                            <Link href="/projects">View All Projects</Link>
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
                 </div>

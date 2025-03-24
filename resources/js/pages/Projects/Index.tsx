@@ -108,11 +108,18 @@ function ProjectCard({ project }: ProjectCardProps) {
         <div className="text-sm text-muted-foreground">
           {project.signups_count || 0} signups
         </div>
-        <Button variant="outline" size="sm" asChild>
-          <Link href={project.full_url} target="_blank" rel="noopener noreferrer">
-            View Site
-          </Link>
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" asChild>
+            <Link href={`/projects/${project.id}/edit`}>
+              Edit
+            </Link>
+          </Button>
+          <Button variant="outline" size="sm" asChild>
+            <Link href={project.full_url} target="_blank" rel="noopener noreferrer">
+              View Site
+            </Link>
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
