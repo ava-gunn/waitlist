@@ -7,6 +7,16 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class ProjectResource extends JsonResource
 {
+    /**
+     * Disable wrapping of the resource in a 'data' object.
+     *
+     * @var bool
+     */
+    public static $wrap = null;
+
+    /**
+     * Transform the resource into an array.
+     */
     public function toArray(Request $request): array
     {
         return [
@@ -22,7 +32,8 @@ class ProjectResource extends JsonResource
             'updated_at' => $this->updated_at,
             'user' => new UserResource($this->whenLoaded('user')),
             'waitlist_template' => new WaitlistTemplateResource($this->whenLoaded('waitlistTemplate')),
-            'template_customizations' => $this->template_customizations,
+            'waitlist_template_id' => $this->waitlist_template_id,
+            'template_customizations' => $this->template_customizations ?: [],
             'signups' => SignupResource::collection($this->whenLoaded('signups')),
             'signups_count' => $this->whenCounted('signups'),
         ];

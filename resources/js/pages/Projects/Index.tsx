@@ -7,7 +7,7 @@ import { Head, Link } from '@inertiajs/react';
 import { PlusCircle } from 'lucide-react';
 
 interface ProjectsProps {
-  projects: Project[] | { data: Project[] };
+  projects: Project[];
 }
 
 const breadcrumbs: BreadcrumbItem[] = [];

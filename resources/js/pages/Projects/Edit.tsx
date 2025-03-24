@@ -16,31 +16,31 @@ interface EditProjectProps {
 }
 
 export default function EditProject({ project }: EditProjectProps) {
-  const projectName = project.data.name;
+  const projectName = project.name;
 
   const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Projects', href: '/projects' },
-    { title: projectName, href: `/projects/${project.data.id}` },
-    { title: 'Edit', href: `/projects/${project.data.id}/edit` },
+    { title: projectName, href: `/projects/${project.id}` },
+    { title: 'Edit', href: `/projects/${project.id}/edit` },
   ];
 
   const { data, setData, patch, processing, errors, setError } = useForm({
-    name: project.data.name,
-    subdomain: project.data.subdomain,
-    description: project.data.description || '',
-    logo_path: project.data.logo_path,
+    name: project.name,
+    subdomain: project.subdomain,
+    description: project.description || '',
+    logo_path: project.logo_path,
     logo: null as File | null,
     settings: {
       theme: project.settings?.theme || 'light',
       collect_name: project.settings?.collect_name ?? true,
       social_sharing: project.settings?.social_sharing ?? true,
     },
-    is_active: project.data.is_active,
+    is_active: project.is_active,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    patch(`/projects/${project.data.id}`, {
+    patch(`/projects/${project.id}`, {
       forceFormData: true,
       onSuccess: () => {
         // Reset the file input after successful upload

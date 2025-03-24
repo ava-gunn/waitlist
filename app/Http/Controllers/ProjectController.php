@@ -38,7 +38,7 @@ class ProjectController extends Controller
 
         // Pass as a direct array instead of using the resource collection to simplify debugging
         return Inertia::render('Projects/Index', [
-            'projects' => $projects->toArray(),
+            'projects' => ProjectResource::collection($projects)->resolve(),
         ]);
     }
 
@@ -80,8 +80,18 @@ class ProjectController extends Controller
             $project->template_customizations = [];
         }
 
+        // Debug the project resource structure
+        $projectResource = (new ProjectResource($project))->resolve();
+
+        Log::debug('Project resource structure', [
+            'project_resource' => $projectResource,
+            'has_waitlist_template' => isset($projectResource['waitlist_template']),
+            'waitlist_template_id' => $project->waitlist_template_id,
+            'template_structure' => $projectResource['waitlist_template'] ?? null,
+        ]);
+
         return Inertia::render('Projects/Show', [
-            'project' => new ProjectResource($project),
+            'project' => $projectResource,
             'stats' => [
                 'total_signups' => $project->signups()->count(),
                 'verified_signups' => $project->signups()->verified()->count(),
@@ -101,7 +111,7 @@ class ProjectController extends Controller
         $this->authorize('update', $project);
 
         return Inertia::render('Projects/Edit', [
-            'project' => new ProjectResource($project),
+            'project' => (new ProjectResource($project))->resolve(),
         ]);
     }
 

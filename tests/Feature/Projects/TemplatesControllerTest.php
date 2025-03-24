@@ -110,9 +110,9 @@ test('project shows template in resource when loaded', function () {
     $response->assertStatus(200);
     $response->assertInertia(fn ($page) => $page
         ->component('Projects/Show')
-        ->where('project.data.id', $this->project->id)
-        ->where('project.data.waitlist_template.id', $this->template->id)
-        ->where('project.data.template_customizations.heading', 'Test Resource Heading')
+        ->where('project.id', $this->project->id)
+        ->where('project.waitlist_template_id', $this->template->id)
+        ->where('project.template_customizations.heading', 'Test Resource Heading')
     );
 });
 

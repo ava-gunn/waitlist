@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Projects;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\ProjectResource;
 use App\Models\Project;
 use App\Models\WaitlistTemplate;
 use App\Repositories\WaitlistTemplateRepository;
@@ -28,7 +29,7 @@ class TemplatesController extends Controller
         $templates = WaitlistTemplate::where('is_active', true)->get();
 
         return Inertia::render('Projects/Templates/Index', [
-            'project' => $project,
+            'project' => new ProjectResource($project),
             'templates' => $templates,
         ]);
     }
@@ -49,8 +50,9 @@ class TemplatesController extends Controller
         }
 
         return Inertia::render('Projects/Templates/Edit', [
-            'project' => $project,
+            'project' => new ProjectResource($project),
             'template' => $template,
+            'customizations' => $project->template_customizations ?: [],
         ]);
     }
 

@@ -15,11 +15,11 @@ interface ProjectShowProps {
 
 export default function ShowProject({ project, stats }: ProjectShowProps) {
   // Ensure project name is never empty in breadcrumbs
-  const projectName = project.data.name || (project.data.id ? `Project ${project.data.id}` : "New Project");
+  const projectName = project.name || (project.id ? `Project ${project.id}` : "New Project");
 
   const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Projects', href: '/projects' },
-    { title: projectName, href: `/projects/${project.data.id}` },
+    { title: projectName, href: `/projects/${project.id}` },
   ];
 
   return (
@@ -56,7 +56,7 @@ export default function ShowProject({ project, stats }: ProjectShowProps) {
             </Link>
           </Button>
           <Button variant="outline" size="sm" asChild>
-            <Link href={`/projects/${project.data.id}/edit`}>
+            <Link href={`/projects/${project.id}/edit`}>
               <PencilLine className="mr-1 size-4" />
               Edit
             </Link>
@@ -89,7 +89,7 @@ export default function ShowProject({ project, stats }: ProjectShowProps) {
               </div>
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground">Template</p>
-                <p className="text-2xl font-bold">{project.data.waitlist_template ? 1 : 0}</p>
+                <p className="text-2xl font-bold">{project.waitlist_template ? 1 : 0}</p>
               </div>
             </div>
           </CardContent>
@@ -97,122 +97,82 @@ export default function ShowProject({ project, stats }: ProjectShowProps) {
 
         {/* Recent Signups Card */}
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
             <CardTitle className="flex items-center gap-2">
               <Users className="h-5 w-5 text-primary" />
               Recent Signups
             </CardTitle>
+            <Button variant="outline" size="sm" asChild>
+              <Link href={`/projects/${project.id}/signups`}>
+                View All
+              </Link>
+            </Button>
           </CardHeader>
           <CardContent>
             {project.signups && project.signups.length > 0 ? (
-              <div className="space-y-4">
-                <ul className="divide-y">
-                  {project.signups.slice(0, 5).map((signup) => (
-                    <li key={signup.id} className="py-2">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-medium">{signup.email}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {new Date(signup.created_at).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <Badge variant={signup.verified_at ? 'default' : 'secondary'}>
-                          {signup.verified_at ? 'Verified' : 'Pending'}
-                        </Badge>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-                {project.signups_count && project.signups_count > 5 && (
-                  <div className="text-center">
-                    <Button variant="link" asChild>
-                      <Link href={`/projects/${project.data.id}/signups`}>
-                        View all {project.signups_count} signups
-                      </Link>
-                    </Button>
+              <div className="space-y-2">
+                {project.signups.map((signup: Signup) => (
+                  <div key={signup.id} className="flex items-center justify-between py-2">
+                    <div>
+                      <div className="font-medium">{signup.name || 'Anonymous'}</div>
+                      <div className="text-sm text-muted-foreground">{signup.email}</div>
+                    </div>
+                    <Badge variant={signup.verified_at ? 'default' : 'secondary'}>
+                      {signup.verified_at ? 'Verified' : 'Pending'}
+                    </Badge>
                   </div>
-                )}
+                ))}
               </div>
             ) : (
-              <div className="flex h-24 items-center justify-center">
-                <p className="text-center text-muted-foreground">No signups yet</p>
+              <div className="py-12 text-center">
+                <Users className="mx-auto h-12 w-12 text-muted-foreground/50" />
+                <h3 className="mt-2 text-lg font-semibold">No signups yet</h3>
+                <p className="text-muted-foreground">Share your waitlist to start collecting signups.</p>
               </div>
             )}
           </CardContent>
         </Card>
+      </div>
 
-        {/* Templates Card */}
+      {/* Template Section */}
+      <div className="mt-6 px-4">
         <Card>
-          <CardHeader>
-            <CardTitle>Waitlist Template</CardTitle>
+          <CardHeader className="flex flex-row items-start justify-between space-y-0">
+            <div>
+              <CardTitle>Waitlist Template</CardTitle>
+              <CardDescription>
+                {project.waitlist_template ?
+                  `Using ${project.waitlist_template.name}` :
+                  'No template selected'}
+              </CardDescription>
+            </div>
+            <Button variant="outline" size="sm" asChild>
+              <Link href={`/projects/${project.id}/templates`}>
+                {project.waitlist_template ? 'Change Template' : 'Select Template'}
+              </Link>
+            </Button>
           </CardHeader>
           <CardContent>
-            {/* Debug information */}
-            <pre className="text-xs mb-4 p-2 bg-gray-100 rounded overflow-auto max-h-40">
-              {JSON.stringify({
-                hasTemplate: project.data.waitlist_template,
-                template: project.data.waitlist_template,
-              }, null, 2)}
-            </pre>
-
-            {project.data.waitlist_template ? (
-              <div>
-                <div className="py-2">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">{project.data.waitlist_template.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {project.data.waitlist_template.description || 'No description'}
-                      </p>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" asChild>
-                        <Link href={`/projects/${project.data.id}/templates`}>
-                          <RefreshCw className="mr-1 size-4" />
-                          Change Template
-                        </Link>
-                      </Button>
-                      <Button variant="ghost" size="sm" asChild>
-                        <Link href={`/projects/${project.data.id}/templates/${project.data.waitlist_template.id}/edit`}>
-                          <PencilLine className="mr-1 size-4" />
-                          Customize
-                        </Link>
-                      </Button>
-                    </div>
-                  </div>
+            {project.waitlist_template ? (
+              <div className="rounded-md border p-4">
+                <p className="text-sm">{project.waitlist_template.description}</p>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center rounded-md border border-dashed p-8">
+                <div className="text-center">
+                  <h3 className="text-lg font-medium">No Template Selected</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Select a template to customize your waitlist page.
+                  </p>
+                  <Button className="mt-4" asChild>
+                    <Link href={`/projects/${project.id}/templates`}>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Select Template
+                    </Link>
+                  </Button>
                 </div>
               </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center gap-2 py-6">
-                <p className="text-center text-muted-foreground">No template selected yet</p>
-                <Button size="sm" asChild>
-                  <Link href={`/projects/${project.data.id}/templates`}>
-                    <Plus className="mr-1 size-4" />
-                    Select Template
-                  </Link>
-                </Button>
-              </div>
             )}
-          </CardContent>
-        </Card>
-
-        {/* Export Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Data Export</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col items-center justify-center gap-4 py-4">
-              <p className="text-center text-muted-foreground">
-                Export your waitlist data in CSV format for analysis or import into other systems.
-              </p>
-              <Button variant="outline" className="w-full" asChild>
-                <Link href={`/projects/${project.data.id}/export`}>
-                  <Download className="mr-2 size-4" />
-                  Export Signups
-                </Link>
-              </Button>
-            </div>
           </CardContent>
         </Card>
       </div>
