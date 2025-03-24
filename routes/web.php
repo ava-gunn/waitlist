@@ -1,7 +1,16 @@
 <?php
 
+use App\Http\Controllers\WaitlistLandingController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+
+// Subdomain routes for accessing waitlist landing pages
+Route::domain('{subdomain}.' . config('app.domain'))->group(function () {
+    Route::get('/', [WaitlistLandingController::class, 'show'])->name('waitlist.landing');
+    Route::post('signup', function (string $subdomain) {
+        return app()->call([app(\App\Http\Controllers\SignupController::class), 'store'], ['subdomain' => $subdomain]);
+    })->name('waitlist.signup');
+});
 
 Route::get('/', function () {
     return Inertia::render('Landing');
