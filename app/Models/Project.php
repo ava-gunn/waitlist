@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Project extends Model
@@ -20,11 +19,14 @@ class Project extends Model
         'logo_path',
         'is_active',
         'user_id',
+        'waitlist_template_id',
+        'template_customizations',
     ];
 
     protected $casts = [
         'settings' => 'array',
         'is_active' => 'boolean',
+        'template_customizations' => 'array',
     ];
 
     public function user(): BelongsTo
@@ -32,24 +34,14 @@ class Project extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function waitlistTemplates(): BelongsToMany
+    public function waitlistTemplate(): BelongsTo
     {
-        return $this->belongsToMany(WaitlistTemplate::class)
-            ->withPivot('customizations', 'is_active')
-            ->withTimestamps()
-            ->using(ProjectWaitlistTemplatePivot::class);
+        return $this->belongsTo(WaitlistTemplate::class);
     }
 
     public function signups(): HasMany
     {
         return $this->hasMany(Signup::class);
-    }
-
-    public function getActiveTemplateAttribute(): ?WaitlistTemplate
-    {
-        return $this->waitlistTemplates()
-            ->wherePivot('is_active', true)
-            ->first();
     }
 
     public function hasSignups(): bool

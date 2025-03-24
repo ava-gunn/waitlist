@@ -6,7 +6,7 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { type Project, type ProjectStats, type Signup } from '@/types/project';
 import { Head, Link } from '@inertiajs/react';
-import { BarChart3, Download, ExternalLink, PencilLine, Plus, Users } from 'lucide-react';
+import { BarChart3, Download, ExternalLink, PencilLine, Plus, RefreshCw, Users } from 'lucide-react';
 
 interface ProjectShowProps {
   project: Project;
@@ -56,7 +56,7 @@ export default function ShowProject({ project, stats }: ProjectShowProps) {
             </Link>
           </Button>
           <Button variant="outline" size="sm" asChild>
-            <Link href={`/projects/${project.id}/edit`}>
+            <Link href={`/projects/${project.data.id}/edit`}>
               <PencilLine className="mr-1 size-4" />
               Edit
             </Link>
@@ -88,8 +88,8 @@ export default function ShowProject({ project, stats }: ProjectShowProps) {
                 <p className="text-2xl font-bold">{stats.conversion_rate}%</p>
               </div>
               <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">Templates</p>
-                <p className="text-2xl font-bold">{project.waitlist_templates?.length || 0}</p>
+                <p className="text-sm text-muted-foreground">Template</p>
+                <p className="text-2xl font-bold">{project.data.waitlist_template ? 1 : 0}</p>
               </div>
             </div>
           </CardContent>
@@ -126,7 +126,7 @@ export default function ShowProject({ project, stats }: ProjectShowProps) {
                 {project.signups_count && project.signups_count > 5 && (
                   <div className="text-center">
                     <Button variant="link" asChild>
-                      <Link href={`/projects/${project.id}/signups`}>
+                      <Link href={`/projects/${project.data.id}/signups`}>
                         View all {project.signups_count} signups
                       </Link>
                     </Button>
@@ -144,37 +144,51 @@ export default function ShowProject({ project, stats }: ProjectShowProps) {
         {/* Templates Card */}
         <Card>
           <CardHeader>
-            <CardTitle>Waitlist Templates</CardTitle>
+            <CardTitle>Waitlist Template</CardTitle>
           </CardHeader>
           <CardContent>
-            {project.waitlist_templates && project.waitlist_templates.length > 0 ? (
-              <ul className="divide-y">
-                {project.waitlist_templates.map((template) => (
-                  <li key={template.id} className="py-2">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">{template.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {template.description || 'No description'}
-                        </p>
-                      </div>
+            {/* Debug information */}
+            <pre className="text-xs mb-4 p-2 bg-gray-100 rounded overflow-auto max-h-40">
+              {JSON.stringify({
+                hasTemplate: project.data.waitlist_template,
+                template: project.data.waitlist_template,
+              }, null, 2)}
+            </pre>
+            
+            {project.data.waitlist_template ? (
+              <div>
+                <div className="py-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">{project.data.waitlist_template.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {project.data.waitlist_template.description || 'No description'}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href={`/projects/${project.data.id}/templates`}>
+                          <RefreshCw className="mr-1 size-4" />
+                          Change Template
+                        </Link>
+                      </Button>
                       <Button variant="ghost" size="sm" asChild>
-                        <Link href={`/projects/${project.id}/templates/${template.id}/edit`}>
-                          <PencilLine className="size-4" />
-                          <span className="sr-only">Edit</span>
+                        <Link href={`/projects/${project.data.id}/templates/${project.data.waitlist_template.id}/edit`}>
+                          <PencilLine className="mr-1 size-4" />
+                          Customize
                         </Link>
                       </Button>
                     </div>
-                  </li>
-                ))}
-              </ul>
+                  </div>
+                </div>
+              </div>
             ) : (
               <div className="flex flex-col items-center justify-center gap-2 py-6">
-                <p className="text-center text-muted-foreground">No templates yet</p>
+                <p className="text-center text-muted-foreground">No template selected yet</p>
                 <Button size="sm" asChild>
-                  <Link href={`/projects/${project.id}/templates/create`}>
+                  <Link href={`/projects/${project.data.id}/templates`}>
                     <Plus className="mr-1 size-4" />
-                    Create Template
+                    Select Template
                   </Link>
                 </Button>
               </div>
@@ -193,7 +207,7 @@ export default function ShowProject({ project, stats }: ProjectShowProps) {
                 Export your waitlist data in CSV format for analysis or import into other systems.
               </p>
               <Button variant="outline" className="w-full" asChild>
-                <Link href={`/projects/${project.id}/export`}>
+                <Link href={`/projects/${project.data.id}/export`}>
                   <Download className="mr-2 size-4" />
                   Export Signups
                 </Link>

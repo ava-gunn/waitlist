@@ -51,35 +51,23 @@ test('user can view template customization page', function () {
     );
 });
 
-test('user can activate a template for their project', function () {
+test('user can set a template for their project', function () {
     $user = User::factory()->create();
     $project = Project::factory()->create(['user_id' => $user->id]);
     $template = WaitlistTemplate::factory()->create(['is_active' => true]);
 
-    // Create another template and attach it as active first
-    $existingTemplate = WaitlistTemplate::factory()->create(['is_active' => true]);
-    $project->waitlistTemplates()->attach($existingTemplate->id, ['is_active' => true]);
-
     $response = $this
         ->actingAs($user)
-        ->post("/projects/{$project->id}/templates/{$template->id}/activate");
+        ->post("/projects/{$project->id}/templates/{$template->id}/set");
 
     $response->assertRedirect();
     $response->assertSessionHas('success');
 
-    // Check that the old template is now inactive
-    $this->assertDatabaseHas('project_waitlist_template', [
-        'project_id' => $project->id,
-        'waitlist_template_id' => $existingTemplate->id,
-        'is_active' => false,
-    ]);
+    // Refresh the project from database
+    $project->refresh();
 
-    // Check that the new template is active
-    $this->assertDatabaseHas('project_waitlist_template', [
-        'project_id' => $project->id,
-        'waitlist_template_id' => $template->id,
-        'is_active' => true,
-    ]);
+    // Check that the template is set
+    expect($project->waitlist_template_id)->toBe($template->id);
 });
 
 test('user can customize a template for their project', function () {
@@ -87,11 +75,10 @@ test('user can customize a template for their project', function () {
     $project = Project::factory()->create(['user_id' => $user->id]);
     $template = WaitlistTemplate::factory()->create();
 
-    // Associate the template with the project (needed for the pivot table)
-    $project->waitlistTemplates()->attach($template->id, [
-        'is_active' => false,
-        'customizations' => json_encode([]),
-    ]);
+    // Set the template for the project
+    $project->waitlist_template_id = $template->id;
+    $project->template_customizations = [];
+    $project->save();
 
     // Data to customize the template
     $customizationData = [
@@ -104,7 +91,6 @@ test('user can customize a template for their project', function () {
             'buttonColor' => '#4c51bf',
             'buttonTextColor' => '#ffffff',
         ],
-        'is_active' => true,
     ];
 
     $response = $this
@@ -114,52 +100,36 @@ test('user can customize a template for their project', function () {
     $response->assertRedirect();
     $response->assertSessionHas('success');
 
-    // Directly insert the necessary data into the database for testing
-    DB::table('project_waitlist_template')
-        ->where('project_id', $project->id)
-        ->where('waitlist_template_id', $template->id)
-        ->update([
-            'customizations' => json_encode($customizationData['customizations']),
-        ]);
+    // Refresh the project from database
+    $project->refresh();
 
-    // Get the updated data
-    $pivotData = DB::table('project_waitlist_template')
-        ->where('project_id', $project->id)
-        ->where('waitlist_template_id', $template->id)
-        ->first();
-
-    $customizations = json_decode($pivotData->customizations, true);
-
-    // Assert that customizations exist
-    expect($customizations)->not->toBeNull();
-    expect($customizations)->toBeArray();
-
-    // Only test the heading since that's what we know should be there
-    expect($customizations)->toHaveKey('heading');
-    expect($customizations['heading'])->toBe('Custom Heading');
+    // Check that the customizations were updated
+    expect($project->template_customizations)->toBeArray();
+    expect($project->template_customizations)->toHaveKey('heading');
+    expect($project->template_customizations['heading'])->toBe('Custom Heading');
 });
 
-test('user can deactivate a template for their project', function () {
+test('user can remove a template from their project', function () {
     $user = User::factory()->create();
     $project = Project::factory()->create(['user_id' => $user->id]);
     $template = WaitlistTemplate::factory()->create(['is_active' => true]);
 
-    // Attach the template to the project as active
-    $project->waitlistTemplates()->attach($template->id, ['is_active' => true]);
+    // First set the template
+    $project->waitlist_template_id = $template->id;
+    $project->save();
 
     $response = $this
         ->actingAs($user)
-        ->post("/projects/{$project->id}/templates/{$template->id}/deactivate");
+        ->post("/projects/{$project->id}/templates/remove");
 
     $response->assertRedirect();
     $response->assertSessionHas('success');
 
-    // Check that the template is now inactive
-    $this->assertDatabaseHas('project_waitlist_template', [
-        'project_id' => $project->id,
-        'waitlist_template_id' => $template->id,
-        'is_active' => false,
-    ]);
+    // Refresh the project from database
+    $project->refresh();
+
+    // Check that the template was removed
+    expect($project->waitlist_template_id)->toBeNull();
 });
 
 test('user cannot customize template for another users project', function () {
@@ -168,14 +138,14 @@ test('user cannot customize template for another users project', function () {
     $project = Project::factory()->create(['user_id' => $otherUser->id]);
     $template = WaitlistTemplate::factory()->create(['is_active' => true]);
 
-    // Attach the template to the project
-    $project->waitlistTemplates()->attach($template->id, ['is_active' => true]);
+    // Set the template for the project
+    $project->waitlist_template_id = $template->id;
+    $project->save();
 
     $customizationData = [
         'customizations' => [
             'heading' => 'Custom Heading',
         ],
-        'is_active' => true,
     ];
 
     $response = $this

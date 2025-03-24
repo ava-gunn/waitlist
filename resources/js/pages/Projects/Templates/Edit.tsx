@@ -8,22 +8,28 @@ import { type Project, type WaitlistTemplate } from '@/types/project';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { ArrowLeft, Check, Paintbrush, Save } from 'lucide-react';
 import { useState } from 'react';
+import { WaitlistTemplatePreview } from '@/components/waitlist-template-preview';
 
 interface TemplateEditProps {
   project: Project;
   template: WaitlistTemplate;
 }
 
+interface WaitlistTemplatePreviewProps {
+  template: WaitlistTemplate;
+  className?: string;
+}
+
 export default function TemplateEdit({ project, template }: TemplateEditProps) {
   const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Projects', href: '/projects' },
-    { title: project.data.name, href: `/projects/${project.data.id}` },
-    { title: 'Templates', href: `/projects/${project.data.id}/templates` },
-    { title: 'Customize', href: `/projects/${project.data.id}/templates/${template.id}/edit` },
+    { title: project.name, href: `/projects/${project.id}` },
+    { title: 'Templates', href: `/projects/${project.id}/templates` },
+    { title: 'Customize', href: `/projects/${project.id}/templates/${template.id}/edit` },
   ];
 
-  const initialCustomizations = template.pivot?.customizations || {};
-  
+  const initialCustomizations = project.template_customizations || {};
+
   const { data, setData, patch, processing } = useForm({
     customizations: {
       // Merge default settings with any existing customizations
@@ -42,21 +48,21 @@ export default function TemplateEdit({ project, template }: TemplateEditProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    patch(`/projects/${project.data.id}/templates/${template.id}`);
+    patch(`/projects/${project.id}/templates/${template.id}`);
   };
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
-      <Head title={`${project.data.name} - Customize Template`} />
+      <Head title={`${project.name} - Customize Template`} />
 
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex items-center justify-between p-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Customize Template</h1>
           <p className="text-muted-foreground">Personalize the {template.name} template for your waitlist</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" asChild>
-            <Link href={`/projects/${project.data.id}`}>
+            <Link href={`/projects/${project.id}`}>
               <ArrowLeft className="mr-1 size-4" />
               Back to Project
             </Link>
@@ -100,7 +106,7 @@ export default function TemplateEdit({ project, template }: TemplateEditProps) {
                       <Input
                         id="heading"
                         value={data.customizations.heading}
-                        onChange={(e) =>
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                           setData('customizations', {
                             ...data.customizations,
                             heading: e.target.value,
@@ -114,7 +120,7 @@ export default function TemplateEdit({ project, template }: TemplateEditProps) {
                       <Input
                         id="description"
                         value={data.customizations.description}
-                        onChange={(e) =>
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                           setData('customizations', {
                             ...data.customizations,
                             description: e.target.value,
@@ -128,7 +134,7 @@ export default function TemplateEdit({ project, template }: TemplateEditProps) {
                       <Input
                         id="buttonText"
                         value={data.customizations.buttonText}
-                        onChange={(e) =>
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                           setData('customizations', {
                             ...data.customizations,
                             buttonText: e.target.value,
@@ -151,7 +157,7 @@ export default function TemplateEdit({ project, template }: TemplateEditProps) {
                         <Input
                           id="backgroundColor"
                           value={data.customizations.backgroundColor}
-                          onChange={(e) =>
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                             setData('customizations', {
                               ...data.customizations,
                               backgroundColor: e.target.value,
@@ -174,7 +180,7 @@ export default function TemplateEdit({ project, template }: TemplateEditProps) {
                         <Input
                           id="textColor"
                           value={data.customizations.textColor}
-                          onChange={(e) =>
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                             setData('customizations', {
                               ...data.customizations,
                               textColor: e.target.value,
@@ -197,7 +203,7 @@ export default function TemplateEdit({ project, template }: TemplateEditProps) {
                         <Input
                           id="buttonColor"
                           value={data.customizations.buttonColor}
-                          onChange={(e) =>
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                             setData('customizations', {
                               ...data.customizations,
                               buttonColor: e.target.value,
@@ -220,7 +226,7 @@ export default function TemplateEdit({ project, template }: TemplateEditProps) {
                         <Input
                           id="buttonTextColor"
                           value={data.customizations.buttonTextColor}
-                          onChange={(e) =>
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                             setData('customizations', {
                               ...data.customizations,
                               buttonTextColor: e.target.value,
@@ -238,80 +244,51 @@ export default function TemplateEdit({ project, template }: TemplateEditProps) {
             </form>
           </Card>
         </div>
-        
+
         <div className="lg:col-span-3">
-          <Card className="overflow-hidden">
-            <CardHeader className="bg-muted pb-1 pt-3">
-              <div className="flex items-center gap-1.5">
-                <div className="h-3 w-3 rounded-full bg-red-500" />
-                <div className="h-3 w-3 rounded-full bg-yellow-500" />
-                <div className="h-3 w-3 rounded-full bg-green-500" />
-                <div className="ml-3 flex-1 rounded-md border border-border bg-background px-2 py-1 text-center text-xs font-medium text-muted-foreground">
-                  {project.data.full_url}
-                </div>
-              </div>
+          <Card>
+            <CardHeader className="border-b px-4 pb-3">
+              <h3 className="text-sm font-medium">Preview</h3>
             </CardHeader>
-            <CardContent className="p-6">
-              <div 
-                className="min-h-[400px] rounded-lg p-8"
-                style={{ 
-                  backgroundColor: data.customizations.backgroundColor,
-                  color: data.customizations.textColor 
+            <CardContent className="h-[500px] max-h-[60vh] overflow-hidden rounded-b-lg">
+              <WaitlistTemplatePreview 
+                template={{
+                  ...template,
+                  structure: {
+                    ...template.structure,
+                    settings: {
+                      ...template.structure.settings,
+                      backgroundColor: data.customizations.backgroundColor,
+                      textColor: data.customizations.textColor,
+                      buttonColor: data.customizations.buttonColor,
+                      buttonTextColor: data.customizations.buttonTextColor,
+                    },
+                    components: template.structure.components.map((component: any) => {
+                      if (component.type === 'header') {
+                        return {
+                          ...component,
+                          content: data.customizations.heading
+                        };
+                      } else if (component.type === 'text') {
+                        return {
+                          ...component,
+                          content: data.customizations.description
+                        };
+                      } else if (component.type === 'form') {
+                        return {
+                          ...component,
+                          button: {
+                            ...component.button,
+                            text: data.customizations.buttonText
+                          }
+                        };
+                      }
+                      return component;
+                    })
+                  }
                 }}
-              >
-                <div className="mx-auto max-w-lg space-y-8">
-                  <div className="space-y-4 text-center">
-                    <h1 
-                      className="text-3xl font-bold" 
-                      style={{ color: data.customizations.textColor }}
-                    >
-                      {data.customizations.heading}
-                    </h1>
-                    <p>{data.customizations.description}</p>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="preview-email" className="block" style={{ color: data.customizations.textColor }}>
-                        Email
-                      </Label>
-                      <Input 
-                        id="preview-email" 
-                        type="email" 
-                        placeholder="Enter your email" 
-                        disabled 
-                        className="w-full border-border bg-white/5"
-                      />
-                    </div>
-                    
-                    {project.data.settings?.collect_name && (
-                      <div className="space-y-2">
-                        <Label htmlFor="preview-name" className="block" style={{ color: data.customizations.textColor }}>
-                          Name
-                        </Label>
-                        <Input 
-                          id="preview-name" 
-                          type="text" 
-                          placeholder="Enter your name" 
-                          disabled 
-                          className="w-full border-border bg-white/5"
-                        />
-                      </div>
-                    )}
-                    
-                    <Button 
-                      className="w-full"
-                      style={{ 
-                        backgroundColor: data.customizations.buttonColor,
-                        color: data.customizations.buttonTextColor 
-                      }}
-                      disabled
-                    >
-                      {data.customizations.buttonText}
-                    </Button>
-                  </div>
-                </div>
-              </div>
+                className="h-full w-full"
+              />
             </CardContent>
           </Card>
         </div>

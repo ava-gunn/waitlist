@@ -21,7 +21,8 @@ class ProjectResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'user' => new UserResource($this->whenLoaded('user')),
-            'waitlist_templates' => WaitlistTemplateResource::collection($this->whenLoaded('waitlistTemplates')),
+            'waitlist_template' => new WaitlistTemplateResource($this->whenLoaded('waitlistTemplate')),
+            'template_customizations' => $this->template_customizations,
             'signups' => SignupResource::collection($this->whenLoaded('signups')),
             'signups_count' => $this->whenCounted('signups'),
         ];

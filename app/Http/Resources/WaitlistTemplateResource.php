@@ -14,23 +14,33 @@ class WaitlistTemplateResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $customizations = null;
-
-        if ($this->whenLoaded('pivot')) {
-            $customizations = $this->pivot->customizations ? json_decode($this->pivot->customizations, true) : [];
-        }
-
         return [
             'id' => $this->id,
             'name' => $this->name,
             'description' => $this->description,
-            'default_customizations' => $this->default_customizations ? json_decode($this->default_customizations, true) : [],
-            'customizations' => $customizations,
-            'is_active' => $this->whenPivotLoaded('project_waitlist_template', function () {
-                return (bool) $this->pivot->is_active;
-            }),
-            'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
-            'updated_at' => $this->updated_at?->format('Y-m-d H:i:s'),
+            'default_customizations' => $this->getArrayValue($this->default_customizations),
+            'structure' => $this->getArrayValue($this->structure),
+            'is_active' => $this->is_active,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
         ];
+    }
+
+    /**
+     * Helper method to handle converting various data types to arrays
+     *
+     * @param  mixed  $value
+     */
+    protected function getArrayValue($value): array
+    {
+        if (is_array($value)) {
+            return $value;
+        }
+
+        if (is_string($value)) {
+            return json_decode($value, true) ?: [];
+        }
+
+        return [];
     }
 }

@@ -3,44 +3,32 @@
 use App\Models\Project;
 use App\Models\WaitlistTemplate;
 use App\Repositories\WaitlistTemplateRepository;
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\DB;
 
-test('waitlist template repository can activate a template for a project', function () {
-    // Refresh the database
-    Artisan::call('migrate:fresh');
+beforeEach(function () {
+    $this->project = Project::factory()->create();
+    $this->template = WaitlistTemplate::factory()->create();
+    $this->repository = new WaitlistTemplateRepository;
+});
 
-    $project = Project::factory()->create();
-    $template = WaitlistTemplate::factory()->create();
-    $repository = new WaitlistTemplateRepository;
-
-    $result = $repository->activateForProject($project, $template);
+test('waitlist template repository can set a template for a project', function () {
+    $result = $this->repository->setTemplateForProject($this->project, $this->template);
 
     expect($result)->toBeTrue();
 
-    // Check pivot table has the correct data
-    $pivotData = DB::table('project_waitlist_template')
-        ->where('project_id', $project->id)
-        ->where('waitlist_template_id', $template->id)
-        ->first();
+    // Refresh the project from database
+    $this->project->refresh();
 
-    expect($pivotData)->not->toBeNull();
-    expect($pivotData->is_active)->toBe(1); // SQLite returns 1 for true
+    // Check that the template is set correctly
+    expect($this->project->waitlist_template_id)->toBe($this->template->id);
+    expect($this->project->template_customizations)->toBeArray();
+    expect($this->project->template_customizations)->toBeEmpty();
 });
 
 test('waitlist template repository can update customizations for a project', function () {
-    // Refresh the database
-    Artisan::call('migrate:fresh');
-
-    $project = Project::factory()->create();
-    $template = WaitlistTemplate::factory()->create();
-    $repository = new WaitlistTemplateRepository;
-
-    // Attach the template first
-    $project->waitlistTemplates()->attach($template->id, [
-        'is_active' => true,
-        'customizations' => json_encode(['heading' => 'Original Heading']),
-    ]);
+    // First set the template
+    $this->project->waitlist_template_id = $this->template->id;
+    $this->project->template_customizations = ['heading' => 'Original Heading'];
+    $this->project->save();
 
     // Update with new data
     $data = [
@@ -48,143 +36,83 @@ test('waitlist template repository can update customizations for a project', fun
             'heading' => 'Updated Heading',
             'backgroundColor' => '#ffffff',
         ],
-        'is_active' => true,
     ];
 
-    $result = $repository->updateForProject($project, $template, $data);
+    $result = $this->repository->updateForProject($this->project, $this->template, $data);
+
     expect($result)->toBeTrue();
 
-    // Check the database has the updated data
-    $pivotData = DB::table('project_waitlist_template')
-        ->where('project_id', $project->id)
-        ->where('waitlist_template_id', $template->id)
-        ->first();
+    // Refresh the project from database
+    $this->project->refresh();
 
-    expect($pivotData)->not->toBeNull();
-
-    // Get the JSON content and check key values
-    $customizationsJson = $pivotData->customizations;
-    expect($customizationsJson)->toContain('Updated Heading');
-    expect($customizationsJson)->toContain('#ffffff');
-
-    // Simplify the JSON checks - only check the string contains expected values
-    expect($pivotData->is_active)->toBe(1); // SQLite returns 1 for true
+    // Check that customizations were updated
+    expect($this->project->template_customizations)->toBeArray();
+    expect($this->project->template_customizations)->toHaveKey('heading');
+    expect($this->project->template_customizations['heading'])->toBe('Updated Heading');
+    expect($this->project->template_customizations)->toHaveKey('backgroundColor');
+    expect($this->project->template_customizations['backgroundColor'])->toBe('#ffffff');
 });
 
-test('waitlist template repository can deactivate a template for a project', function () {
-    // Refresh the database
-    Artisan::call('migrate:fresh');
+test('waitlist template repository can remove a template from a project', function () {
+    // First set the template
+    $this->project->waitlist_template_id = $this->template->id;
+    $this->project->template_customizations = ['heading' => 'Original Heading'];
+    $this->project->save();
 
-    $project = Project::factory()->create();
-    $template = WaitlistTemplate::factory()->create();
-    $repository = new WaitlistTemplateRepository;
-
-    // Attach the template first with active status
-    $project->waitlistTemplates()->attach($template->id, [
-        'is_active' => true,
-    ]);
-
-    $result = $repository->deactivateForProject($project, $template);
+    $result = $this->repository->removeFromProject($this->project);
 
     expect($result)->toBeTrue();
 
-    // Check the database has the updated status
-    $pivotData = DB::table('project_waitlist_template')
-        ->where('project_id', $project->id)
-        ->where('waitlist_template_id', $template->id)
-        ->first();
+    // Refresh the project from database
+    $this->project->refresh();
 
-    expect($pivotData)->not->toBeNull();
-    expect($pivotData->is_active)->toBe(0); // SQLite returns 0 for false
-});
-
-test('waitlist template repository can deactivate all templates for a project', function () {
-    // Refresh the database
-    Artisan::call('migrate:fresh');
-
-    $project = Project::factory()->create();
-    $template1 = WaitlistTemplate::factory()->create();
-    $template2 = WaitlistTemplate::factory()->create();
-    $template3 = WaitlistTemplate::factory()->create();
-    $repository = new WaitlistTemplateRepository;
-
-    // Attach multiple templates with active status
-    $project->waitlistTemplates()->attach([
-        $template1->id => ['is_active' => true],
-        $template2->id => ['is_active' => true],
-        $template3->id => ['is_active' => true],
-    ]);
-
-    // Force a refresh to ensure we have the latest data
-    $project->refresh();
-
-    // Call the deactivation method
-    $result = $repository->deactivateAllForProject($project);
-    expect($result)->toBeTrue();
-
-    // Check all templates are now inactive by querying the database directly
-    $pivotData = DB::table('project_waitlist_template')
-        ->where('project_id', $project->id)
-        ->get();
-
-    expect($pivotData)->toHaveCount(3);
-    foreach ($pivotData as $item) {
-        expect($item->is_active)->toBe(0); // SQLite returns 0 for false
-    }
+    // Check that template is removed
+    expect($this->project->waitlist_template_id)->toBeNull();
+    expect($this->project->template_customizations)->toBeNull();
 });
 
 test('waitlist template repository can find all active templates', function () {
-    // Refresh the database
-    Artisan::call('migrate:fresh');
+    // Clear existing templates to avoid test pollution
+    WaitlistTemplate::query()->delete();
+
+    // Create the template for this test
+    $template = WaitlistTemplate::factory()->create(['is_active' => true]);
 
     // Create inactive templates
     WaitlistTemplate::factory()->count(2)->create(['is_active' => false]);
 
     // Create active templates
-    WaitlistTemplate::factory()->count(3)->create(['is_active' => true]);
+    WaitlistTemplate::factory()->count(2)->create(['is_active' => true]);
 
-    $repository = new WaitlistTemplateRepository;
-    $activeTemplates = $repository->findAllActive();
+    $templates = $this->repository->all();
 
-    expect($activeTemplates)->toHaveCount(3);
-    $activeTemplates->each(function ($template) {
+    // Should only have 3 templates (2 created above + 1 created specifically for this test)
+    expect($templates)->toHaveCount(3);
+
+    // All should be active
+    foreach ($templates as $template) {
         expect($template->is_active)->toBeTrue();
-    });
+    }
 });
 
-test('waitlist template repository can find active template for a project', function () {
-    // Refresh the database
-    Artisan::call('migrate:fresh');
+test('updating template customizations with invalid data keeps existing customizations', function () {
+    // First set the template with some customizations
+    $this->project->waitlist_template_id = $this->template->id;
+    $this->project->template_customizations = ['heading' => 'Original Heading'];
+    $this->project->save();
 
-    $project = Project::factory()->create();
-    $template1 = WaitlistTemplate::factory()->create(['name' => 'Template 1']);
-    $template2 = WaitlistTemplate::factory()->create(['name' => 'Template 2']);
-    $repository = new WaitlistTemplateRepository;
+    // Try to update with invalid data (missing customizations key)
+    $data = ['some_other_data' => 'value'];
 
-    // Attach with first template inactive
-    $project->waitlistTemplates()->attach($template1->id, ['is_active' => false]);
+    $result = $this->repository->updateForProject($this->project, $this->template, $data);
 
-    // Attach with second template active
-    $project->waitlistTemplates()->attach($template2->id, ['is_active' => true]);
+    expect($result)->toBeTrue();
 
-    $activeTemplate = $repository->findActiveForProject($project);
+    // Refresh the project from database
+    $this->project->refresh();
 
-    expect($activeTemplate)->toBeInstanceOf(WaitlistTemplate::class);
-    expect($activeTemplate->name)->toBe('Template 2');
-});
-
-test('waitlist template repository returns null when no active template for project', function () {
-    // Refresh the database
-    Artisan::call('migrate:fresh');
-
-    $project = Project::factory()->create();
-    $template = WaitlistTemplate::factory()->create();
-    $repository = new WaitlistTemplateRepository;
-
-    // Attach with template inactive
-    $project->waitlistTemplates()->attach($template->id, ['is_active' => false]);
-
-    $activeTemplate = $repository->findActiveForProject($project);
-
-    expect($activeTemplate)->toBeNull();
+    // Check that customizations remain unchanged
+    expect($this->project->template_customizations)->toBeArray();
+    expect($this->project->template_customizations)->toHaveKey('heading');
+    expect($this->project->template_customizations['heading'])->toBe('Original Heading');
 });

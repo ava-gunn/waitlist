@@ -1,9 +1,10 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { WaitlistTemplatePreview } from '@/components/waitlist-template-preview';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { type Project, type WaitlistTemplate } from '@/types/project';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { ArrowLeft, Check } from 'lucide-react';
 
 interface TemplatesIndexProps {
@@ -12,38 +13,37 @@ interface TemplatesIndexProps {
 }
 
 export default function TemplatesIndex({ project, templates }: TemplatesIndexProps) {
+  console.log({project, templates});
   const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Projects', href: '/projects' },
-    { title: project.data.name, href: `/projects/${project.data.id}` },
-    { title: 'Templates', href: `/projects/${project.data.id}/templates` },
+    { title: project.name, href: `/projects/${project.id}` },
+    { title: 'Templates', href: `/projects/${project.id}/templates` },
   ];
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
-      <Head title={`${project.data.name} - Select Template`} />
-      
-      <div className="mb-6 flex items-center justify-between">
+      <Head title={`${project.name} - Select Template`} />
+
+      <div className="mb-6 flex items-center justify-between p-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Select a Template</h1>
           <p className="text-muted-foreground">Choose a template for your waitlist landing page</p>
         </div>
         <Button variant="outline" asChild>
-          <Link href={`/projects/${project.data.id}`}>
-            <ArrowLeft className="mr-1 size-4" /> 
+          <Link href={`/projects/${project.id}`}>
+            <ArrowLeft className="mr-1 size-4" />
             Back to Project
           </Link>
         </Button>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 p-4">
         {templates.map((template) => (
-          <TemplateCard 
-            key={template.id} 
-            template={template} 
-            projectId={project.data.id} 
-            isSelected={project.data.waitlist_templates?.some(t => 
-              t.id === template.id && t.pivot?.is_active
-            )}
+          <TemplateCard
+            key={template.id}
+            template={template}
+            projectId={project.id}
+            isSelected={project.waitlist_template_id === template.id}
           />
         ))}
       </div>
@@ -58,15 +58,13 @@ interface TemplateCardProps {
 }
 
 function TemplateCard({ template, projectId, isSelected }: TemplateCardProps) {
+  const { post } = useForm();
+
   return (
-    <Card className={`overflow-hidden transition-all ${isSelected ? 'ring-2 ring-primary' : ''}`}>
-      <div
-        className="h-48 w-full bg-cover bg-center"
-        style={{
-          backgroundColor: template.structure.settings.backgroundColor || '#f3f4f6',
-          backgroundImage: template.thumbnail_path ? `url(${template.thumbnail_path})` : undefined,
-        }}
-        aria-hidden="true"
+    <Card className={`overflow-hidden transition-all hover:shadow-md ${isSelected ? 'ring-2 ring-primary' : ''}`}>
+      <WaitlistTemplatePreview
+        template={template}
+        className="border-b rounded-t-md"
       />
       <CardHeader className="p-4">
         <div className="flex items-center justify-between">
@@ -87,15 +85,18 @@ function TemplateCard({ template, projectId, isSelected }: TemplateCardProps) {
                 Customize
               </Link>
             </Button>
-            <Button variant="secondary" size="sm" className="flex-1">
-              Deactivate
+            <Button 
+              variant="secondary" 
+              size="sm" 
+              className="flex-1"
+              onClick={() => post(`/projects/${projectId}/templates/remove`)}
+            >
+              Remove
             </Button>
           </div>
         ) : (
-          <Button className="w-full" asChild>
-            <Link href={`/projects/${projectId}/templates/${template.id}/activate`}>
-              Select Template
-            </Link>
+          <Button className="w-full" onClick={() => post(`/projects/${projectId}/templates/${template.id}/set`)}>
+            Select Template
           </Button>
         )}
       </CardFooter>

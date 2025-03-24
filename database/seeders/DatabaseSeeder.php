@@ -20,9 +20,10 @@ class DatabaseSeeder extends Seeder
             'email' => 'test@example.com',
         ]);
 
-        // Seed projects
+        // Seed projects and templates
         $this->call([
             ProjectSeeder::class,
+            WaitlistTemplateSeeder::class,
         ]);
     }
 }

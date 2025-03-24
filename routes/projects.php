@@ -20,7 +20,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('templates', [TemplatesController::class, 'index'])->name('projects.templates.index');
         Route::get('templates/{template}/edit', [TemplatesController::class, 'edit'])->name('projects.templates.edit');
         Route::patch('templates/{template}', [TemplatesController::class, 'update'])->name('projects.templates.update');
-        Route::post('templates/{template}/activate', [TemplatesController::class, 'activate'])->name('projects.templates.activate');
-        Route::post('templates/{template}/deactivate', [TemplatesController::class, 'deactivate'])->name('projects.templates.deactivate');
+        Route::post('templates/{template}/set', [TemplatesController::class, 'setTemplate'])->name('projects.templates.set');
+        Route::post('templates/remove', [TemplatesController::class, 'removeTemplate'])->name('projects.templates.remove');
     });
 });

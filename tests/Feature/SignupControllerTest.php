@@ -8,13 +8,13 @@ use Illuminate\Support\Str;
 
 test('visitor can submit signup form on project subdomain', function () {
     // Create a project with an active template
+    $template = WaitlistTemplate::factory()->create(['is_active' => true]);
+
     $project = Project::factory()->create([
         'subdomain' => 'test-waitlist',
         'is_active' => true,
+        'waitlist_template_id' => $template->id,
     ]);
-
-    $template = WaitlistTemplate::factory()->create(['is_active' => true]);
-    $project->waitlistTemplates()->attach($template->id, ['is_active' => true]);
 
     $signupData = [
         'email' => 'newuser@example.com',
@@ -49,51 +49,72 @@ test('visitor cannot submit to inactive project', function () {
     // Use json() method to send as JSON request
     $response = $this->json('POST', "/signup/{$project->subdomain}", $signupData);
 
-    // Check for any 4xx status code and appropriate error message
-    $response->assertStatus(422); // This will be a validation error now
-    $response->assertJson([
-        'success' => false,
-        'errors' => [],
-    ]);
-    // Check that error message mentions the project being inactive
-    $responseContent = $response->getContent();
-    expect($responseContent)->toContain('inactive');
+    $response->assertStatus(422);
+    $response->assertJsonValidationErrors(['email']);
+    $response->assertJsonFragment(['Project not found or inactive.']);
 });
 
-test('visitor cannot submit duplicate email to same project', function () {
+test('visitor cannot submit with invalid email', function () {
+    $template = WaitlistTemplate::factory()->create(['is_active' => true]);
+
     $project = Project::factory()->create([
-        'subdomain' => 'duplicate-test',
+        'subdomain' => 'test-waitlist',
         'is_active' => true,
+        'waitlist_template_id' => $template->id,
+    ]);
+
+    $invalidData = [
+        'email' => 'not-an-email',
+        'name' => 'Test User',
+    ];
+
+    // Use json() method to send as JSON request
+    $response = $this->json('POST', "/signup/{$project->subdomain}", $invalidData);
+
+    $response->assertStatus(422);
+    $response->assertJsonValidationErrors(['email']);
+});
+
+test('visitor cannot submit duplicate email', function () {
+    $template = WaitlistTemplate::factory()->create(['is_active' => true]);
+
+    $project = Project::factory()->create([
+        'subdomain' => 'test-waitlist',
+        'is_active' => true,
+        'waitlist_template_id' => $template->id,
     ]);
 
     // Create an existing signup
     Signup::factory()->create([
         'project_id' => $project->id,
         'email' => 'existing@example.com',
-        'name' => 'Existing User',
     ]);
 
-    $signupData = [
-        'email' => 'existing@example.com', // Already exists for this project
-        'name' => 'Test User',
+    $duplicateData = [
+        'email' => 'existing@example.com',
+        'name' => 'New User With Existing Email',
     ];
 
-    // Use json() method to send as JSON request which should get JSON response
-    $response = $this->json('POST', "/signup/{$project->subdomain}", $signupData);
+    // Use json() method to send as JSON request
+    $response = $this->json('POST', "/signup/{$project->subdomain}", $duplicateData);
 
-    $response->assertStatus(422); // Validation error
+    $response->assertStatus(422);
     $response->assertJsonValidationErrors(['email']);
 });
 
 test('visitor can submit same email to different projects', function () {
+    $template = WaitlistTemplate::factory()->create(['is_active' => true]);
+
     $project1 = Project::factory()->create([
         'subdomain' => 'first-project',
         'is_active' => true,
+        'waitlist_template_id' => $template->id,
     ]);
 
     $project2 = Project::factory()->create([
         'subdomain' => 'second-project',
         'is_active' => true,
+        'waitlist_template_id' => $template->id,
     ]);
 
     // Create a signup for the first project
@@ -124,7 +145,14 @@ test('visitor can submit same email to different projects', function () {
 });
 
 test('visitor can verify email with valid token', function () {
-    $project = Project::factory()->create(['is_active' => true]);
+    $template = WaitlistTemplate::factory()->create(['is_active' => true]);
+
+    $project = Project::factory()->create([
+        'subdomain' => 'test-project',
+        'is_active' => true,
+        'waitlist_template_id' => $template->id,
+    ]);
+
     $token = 'valid-verification-token';
 
     $signup = Signup::factory()->create([
@@ -153,7 +181,15 @@ test('visitor cannot verify with invalid token', function () {
 
 test('project owner can view signups', function () {
     $user = User::factory()->create();
-    $project = Project::factory()->create(['user_id' => $user->id]);
+    $template = WaitlistTemplate::factory()->create(['is_active' => true]);
+
+    $project = Project::factory()->create([
+        'user_id' => $user->id,
+        'subdomain' => 'test-project',
+        'is_active' => true,
+        'waitlist_template_id' => $template->id,
+    ]);
+
     $signups = Signup::factory()->count(5)->create([
         'project_id' => $project->id,
         'name' => 'Test User',
@@ -173,7 +209,15 @@ test('project owner can view signups', function () {
 
 test('project owner can export signups', function () {
     $user = User::factory()->create();
-    $project = Project::factory()->create(['user_id' => $user->id]);
+    $template = WaitlistTemplate::factory()->create(['is_active' => true]);
+
+    $project = Project::factory()->create([
+        'user_id' => $user->id,
+        'subdomain' => 'test-project',
+        'is_active' => true,
+        'waitlist_template_id' => $template->id,
+    ]);
+
     Signup::factory()->count(3)->create([
         'project_id' => $project->id,
         'name' => 'Test User',
@@ -198,7 +242,15 @@ test('project owner can export signups', function () {
 
 test('project owner can delete a signup', function () {
     $user = User::factory()->create();
-    $project = Project::factory()->create(['user_id' => $user->id]);
+    $template = WaitlistTemplate::factory()->create(['is_active' => true]);
+
+    $project = Project::factory()->create([
+        'user_id' => $user->id,
+        'subdomain' => 'test-project',
+        'is_active' => true,
+        'waitlist_template_id' => $template->id,
+    ]);
+
     $signup = Signup::factory()->create([
         'project_id' => $project->id,
         'name' => 'Test User',
@@ -218,7 +270,15 @@ test('project owner can delete a signup', function () {
 test('user cannot view signups for another users project', function () {
     $user = User::factory()->create();
     $otherUser = User::factory()->create();
-    $project = Project::factory()->create(['user_id' => $otherUser->id]);
+    $template = WaitlistTemplate::factory()->create(['is_active' => true]);
+
+    $project = Project::factory()->create([
+        'user_id' => $otherUser->id,
+        'subdomain' => 'test-project',
+        'is_active' => true,
+        'waitlist_template_id' => $template->id,
+    ]);
+
     Signup::factory()->count(3)->create([
         'project_id' => $project->id,
         'name' => 'Test User',
@@ -234,7 +294,15 @@ test('user cannot view signups for another users project', function () {
 test('user cannot delete signup from another users project', function () {
     $user = User::factory()->create();
     $otherUser = User::factory()->create();
-    $project = Project::factory()->create(['user_id' => $otherUser->id]);
+    $template = WaitlistTemplate::factory()->create(['is_active' => true]);
+
+    $project = Project::factory()->create([
+        'user_id' => $otherUser->id,
+        'subdomain' => 'test-project',
+        'is_active' => true,
+        'waitlist_template_id' => $template->id,
+    ]);
+
     $signup = Signup::factory()->create([
         'project_id' => $project->id,
         'name' => 'Test User',

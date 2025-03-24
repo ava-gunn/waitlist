@@ -2,26 +2,25 @@
 
 use App\Models\Project;
 use App\Models\WaitlistTemplate;
-use Illuminate\Support\Facades\Artisan;
 
 test('waitlist template has correct fillable attributes', function () {
     $fillable = ['name', 'description', 'thumbnail', 'structure', 'is_active'];
     expect((new WaitlistTemplate)->getFillable())->toBe($fillable);
 });
 
-test('waitlist template belongs to many projects', function () {
+test('waitlist template has many projects', function () {
     $template = WaitlistTemplate::factory()->create();
-    $project = Project::factory()->create();
-
-    $template->projects()->attach($project->id, [
-        'is_active' => true,
-        'customizations' => json_encode(['heading' => 'Custom Heading']),
+    $project = Project::factory()->create([
+        'waitlist_template_id' => $template->id,
+        'template_customizations' => ['heading' => 'Custom Heading'],
     ]);
 
     expect($template->projects)->toHaveCount(1);
     expect($template->projects->first())->toBeInstanceOf(Project::class);
-    expect($template->projects->first()->pivot->is_active)->toBeTrue();
-    expect(json_decode($template->projects->first()->pivot->customizations))->toHaveProperty('heading', 'Custom Heading');
+    expect($template->projects->first()->waitlist_template_id)->toBe($template->id);
+    expect($template->projects->first()->template_customizations)->toBeArray();
+    expect($template->projects->first()->template_customizations)->toHaveKey('heading');
+    expect($template->projects->first()->template_customizations['heading'])->toBe('Custom Heading');
 });
 
 test('waitlist template structure is cast to array', function () {
@@ -41,16 +40,13 @@ test('waitlist template structure is cast to array', function () {
         'structure' => $structure,
     ]);
 
+    expect($template->structure)->toBe($structure);
     expect($template->structure)->toBeArray();
-    expect($template->structure)->toHaveKey('settings');
-    expect($template->structure)->toHaveKey('components');
-    expect($template->structure['settings']['backgroundColor'])->toBe('#ffffff');
-    expect($template->structure['components'][0]['type'])->toBe('header');
 });
 
 test('active scope returns only active templates', function () {
-    // Clear the database first
-    Artisan::call('migrate:fresh');
+    // Clear existing templates to avoid test pollution
+    WaitlistTemplate::query()->delete();
 
     // Create inactive templates
     WaitlistTemplate::factory()->count(2)->create(['is_active' => false]);

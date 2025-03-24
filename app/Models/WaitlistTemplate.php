@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class WaitlistTemplate extends Model
 {
@@ -24,12 +24,9 @@ class WaitlistTemplate extends Model
         'is_default' => 'boolean',
     ];
 
-    public function projects(): BelongsToMany
+    public function projects(): HasMany
     {
-        return $this->belongsToMany(Project::class)
-            ->withPivot('customizations', 'is_active')
-            ->withTimestamps()
-            ->using(ProjectWaitlistTemplatePivot::class);
+        return $this->hasMany(Project::class);
     }
 
     public function scopeActive($query)

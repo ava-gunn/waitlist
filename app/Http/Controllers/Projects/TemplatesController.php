@@ -40,7 +40,13 @@ class TemplatesController extends Controller
     {
         $this->authorize('update', $project);
 
-        $template->load('projects');
+        // Make sure we have the waitlistTemplate relationship loaded
+        $project->load('waitlistTemplate');
+
+        // Initialize template_customizations if null
+        if ($project->template_customizations === null) {
+            $project->template_customizations = [];
+        }
 
         return Inertia::render('Projects/Templates/Edit', [
             'project' => $project,
@@ -57,7 +63,6 @@ class TemplatesController extends Controller
 
         $validated = $request->validate([
             'customizations' => 'required|array',
-            'is_active' => 'boolean',
         ]);
 
         $this->templateRepository->updateForProject(
@@ -65,36 +70,31 @@ class TemplatesController extends Controller
             $template,
             [
                 'customizations' => $validated['customizations'],
-                'is_active' => $validated['is_active'] ?? false,
             ]
         );
-
-        if (isset($validated['is_active']) && $validated['is_active']) {
-            $this->templateRepository->activateForProject($project, $template);
-        }
 
         return redirect()->back()->with('success', 'Template customizations updated successfully');
     }
 
     /**
-     * Activate a template for a project
+     * Set a template for a project
      */
-    public function activate(Project $project, WaitlistTemplate $template): \Illuminate\Http\RedirectResponse
+    public function setTemplate(Project $project, WaitlistTemplate $template): \Illuminate\Http\RedirectResponse
     {
         $this->authorize('update', $project);
-        $this->templateRepository->activateForProject($project, $template);
+        $this->templateRepository->setTemplateForProject($project, $template);
 
-        return redirect()->back()->with('success', 'Template activated successfully');
+        return redirect()->route('projects.show', $project->id)->with('success', 'Template set successfully');
     }
 
     /**
-     * Deactivate a template for a project
+     * Remove template from a project
      */
-    public function deactivate(Project $project, WaitlistTemplate $template): \Illuminate\Http\RedirectResponse
+    public function removeTemplate(Project $project): \Illuminate\Http\RedirectResponse
     {
         $this->authorize('update', $project);
-        $this->templateRepository->deactivateForProject($project, $template);
+        $this->templateRepository->removeFromProject($project);
 
-        return redirect()->back()->with('success', 'Template deactivated successfully');
+        return redirect()->back()->with('success', 'Template removed successfully');
     }
 }

@@ -58,10 +58,10 @@ class ProjectController extends Controller
             ['user_id' => auth()->id()]
         ));
 
-        // Activate the selected template for this project if provided
+        // Set the selected template for this project if provided
         if ($request->has('template_id')) {
             $template = WaitlistTemplate::findOrFail($request->template_id);
-            $this->templateRepository->activateForProject($project, $template);
+            $this->templateRepository->setTemplateForProject($project, $template);
         }
 
         return Redirect::route('projects.show', $project)
@@ -72,7 +72,13 @@ class ProjectController extends Controller
     {
         $this->authorize('view', $project);
 
-        $project->load(['waitlistTemplates', 'signups' => fn ($query) => $query->latest()->limit(10)]);
+        // Load relationships
+        $project->load(['waitlistTemplate', 'signups' => fn ($query) => $query->latest()->limit(10)]);
+
+        // Initialize template_customizations if null
+        if ($project->template_customizations === null) {
+            $project->template_customizations = [];
+        }
 
         return Inertia::render('Projects/Show', [
             'project' => new ProjectResource($project),
