@@ -6,23 +6,50 @@ import { useState } from 'react';
 interface WaitlistTemplatePreviewProps {
   template: WaitlistTemplate;
   className?: string;
+  customizations?: Record<string, any>;
 }
 
-export function WaitlistTemplatePreview({ template, className }: WaitlistTemplatePreviewProps) {
+interface ComponentProps {
+  type: string;
+  variant?: string;
+  className?: string;
+  level?: number;
+  content?: string;
+  children?: ComponentProps[];
+  position?: string;
+  fields?: FieldProps[];
+  button?: ButtonProps;
+  src?: string;
+  alt?: string;
+}
+
+interface FieldProps {
+  type: string;
+  label?: string;
+  placeholder?: string;
+  required?: boolean;
+}
+
+interface ButtonProps {
+  text: string;
+  className?: string;
+}
+
+export function WaitlistTemplatePreview({ template, className, customizations = {} }: WaitlistTemplatePreviewProps) {
   const [loaded, setLoaded] = useState(false);
 
   const structure = template.structure || {};
   const settings = structure.settings || {};
-  const components = structure.components || [];
+  const components: ComponentProps[] = (structure.components || []) as ComponentProps[];
 
   // Helper function to render components recursively
-  const renderComponent = (component: any, index: number) => {
+  const renderComponent = (component: ComponentProps, index: number) => {
     switch (component.type) {
       case 'layout':
         if (component.variant === 'side-by-side' || component.variant === 'split-screen') {
           return (
             <div key={index} className="flex flex-col md:flex-row h-full">
-              {component.children?.map((child: any, idx: number) => (
+              {component.children?.map((child, idx) => (
                 <div 
                   key={idx} 
                   className={cn(
@@ -30,8 +57,11 @@ export function WaitlistTemplatePreview({ template, className }: WaitlistTemplat
                     child.position === 'left' && 'bg-muted',
                     child.className
                   )}
+                  style={child.position === 'left' ? {
+                    backgroundColor: customizations.backgroundColor || settings.backgroundColor || '#ffffff'
+                  } : {}}
                 >
-                  {child.children ? child.children.map((c: any, i: number) => renderComponent(c, i)) : renderComponent(child, idx)}
+                  {child.children ? child.children.map((c, i) => renderComponent(c, i)) : renderComponent(child, idx)}
                 </div>
               ))}
             </div>
@@ -39,7 +69,7 @@ export function WaitlistTemplatePreview({ template, className }: WaitlistTemplat
         } else if (component.variant === 'centered') {
           return (
             <div key={index} className={cn("flex flex-col items-center justify-center p-6", component.className)}>
-              {component.children?.map((child: any, idx: number) => renderComponent(child, idx))}
+              {component.children?.map((child, idx) => renderComponent(child, idx))}
             </div>
           );
         }
@@ -48,32 +78,51 @@ export function WaitlistTemplatePreview({ template, className }: WaitlistTemplat
       case 'content':
         return (
           <div key={index} className={cn("p-4", component.className)}>
-            {component.children?.map((child: any, idx: number) => renderComponent(child, idx))}
+            {component.children?.map((child, idx) => renderComponent(child, idx))}
           </div>
         );
 
       case 'header':
-        const HeaderTag = `h${component.level || 1}` as keyof JSX.IntrinsicElements;
-        return (
-          <HeaderTag key={index} className={cn("font-bold", component.className)}>
-            {component.content}
-          </HeaderTag>
-        );
+        // Handle dynamic header tags properly
+        const level = component.level || 1;
+        const headingContent = customizations.heading || component.content;
+        const headingStyle = { color: customizations.textColor || settings.textColor || '#000000' };
+        const headingClass = cn("font-bold", component.className);
+        
+        // Return the appropriate heading level
+        switch(level) {
+          case 1: return <h1 key={index} className={headingClass} style={headingStyle}>{headingContent}</h1>;
+          case 2: return <h2 key={index} className={headingClass} style={headingStyle}>{headingContent}</h2>;
+          case 3: return <h3 key={index} className={headingClass} style={headingStyle}>{headingContent}</h3>;
+          case 4: return <h4 key={index} className={headingClass} style={headingStyle}>{headingContent}</h4>;
+          case 5: return <h5 key={index} className={headingClass} style={headingStyle}>{headingContent}</h5>;
+          case 6: return <h6 key={index} className={headingClass} style={headingStyle}>{headingContent}</h6>;
+          default: return <h1 key={index} className={headingClass} style={headingStyle}>{headingContent}</h1>;
+        }
 
       case 'text':
         return (
-          <p key={index} className={cn("text-muted-foreground", component.className)}>
-            {component.content}
+          <p 
+            key={index} 
+            className={cn("text-muted-foreground", component.className)}
+            style={{ color: customizations.textColor || settings.textColor || '#000000' }}
+          >
+            {customizations.description || component.content}
           </p>
         );
 
       case 'form':
         return (
           <div key={index} className={cn("space-y-4", component.className)}>
-            {component.fields?.map((field: any, idx: number) => (
+            {component.fields?.map((field, idx) => (
               <div key={idx} className="space-y-2">
                 {field.label && (
-                  <label className="text-sm font-medium">{field.label}</label>
+                  <label 
+                    className="text-sm font-medium"
+                    style={{ color: customizations.textColor || settings.textColor || '#000000' }}
+                  >
+                    {field.label}
+                  </label>
                 )}
                 <input 
                   type={field.type} 
@@ -87,12 +136,16 @@ export function WaitlistTemplatePreview({ template, className }: WaitlistTemplat
               <button 
                 className={cn(
                   "inline-flex items-center justify-center whitespace-nowrap rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
-                  "bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2",
+                  "px-4 py-2",
                   component.button.className
                 )}
+                style={{
+                  backgroundColor: customizations.buttonColor || settings.buttonColor || '#4f46e5',
+                  color: customizations.buttonTextColor || settings.buttonTextColor || '#ffffff',
+                }}
                 disabled
               >
-                {component.button.text}
+                {customizations.buttonText || component.button.text}
               </button>
             )}
           </div>
@@ -123,7 +176,7 @@ export function WaitlistTemplatePreview({ template, className }: WaitlistTemplat
       case 'div':
         return (
           <div key={index} className={component.className}>
-            {component.children?.map((child: any, idx: number) => renderComponent(child, idx))}
+            {component.children?.map((child, idx) => renderComponent(child, idx))}
           </div>
         );
 
@@ -133,12 +186,12 @@ export function WaitlistTemplatePreview({ template, className }: WaitlistTemplat
   };
 
   const previewStyle = {
-    backgroundColor: settings.backgroundColor || '#ffffff',
-    color: settings.textColor || '#000000',
+    backgroundColor: customizations.backgroundColor || settings.backgroundColor || '#ffffff',
+    color: customizations.textColor || settings.textColor || '#000000',
   };
 
   return (
-    <Card className={cn("overflow-hidden transition-all h-[300px]", className)}>
+    <Card className={cn("overflow-hidden transition-all h-[500px]", className)}>
       <CardContent className="p-0 h-full" style={previewStyle}>
         {!loaded && components.length > 0 && (
           <div className="w-full h-full flex items-center justify-center bg-muted/50">

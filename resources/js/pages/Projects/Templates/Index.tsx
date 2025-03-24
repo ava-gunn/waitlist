@@ -24,7 +24,7 @@ export default function TemplatesIndex({ project, templates }: TemplatesIndexPro
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title={`${project.name} - Select Template`} />
 
-      <div className="mb-6 flex items-center justify-between p-4">
+      <div className="flex items-center justify-between p-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Select a Template</h1>
           <p className="text-muted-foreground">Choose a template for your waitlist landing page</p>
@@ -85,9 +85,9 @@ function TemplateCard({ template, projectId, isSelected }: TemplateCardProps) {
                 Customize
               </Link>
             </Button>
-            <Button 
-              variant="secondary" 
-              size="sm" 
+            <Button
+              variant="secondary"
+              size="sm"
               className="flex-1"
               onClick={() => post(`/projects/${projectId}/templates/remove`)}
             >

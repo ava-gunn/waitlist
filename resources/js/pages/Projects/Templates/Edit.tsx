@@ -55,7 +55,7 @@ export default function TemplateEdit({ project, template }: TemplateEditProps) {
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title={`${project.name} - Customize Template`} />
 
-      <div className="mb-6 flex items-center justify-between p-4">
+      <div className="flex items-center justify-between p-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Customize Template</h1>
           <p className="text-muted-foreground">Personalize the {template.name} template for your waitlist</p>
@@ -245,52 +245,21 @@ export default function TemplateEdit({ project, template }: TemplateEditProps) {
           </Card>
         </div>
 
-        <div className="lg:col-span-3">
-          <Card>
-            <CardHeader className="border-b px-4 pb-3">
-              <h3 className="text-sm font-medium">Preview</h3>
-            </CardHeader>
-            <CardContent className="h-[500px] max-h-[60vh] overflow-hidden rounded-b-lg">
-              <WaitlistTemplatePreview 
-                template={{
-                  ...template,
-                  structure: {
-                    ...template.structure,
-                    settings: {
-                      ...template.structure.settings,
-                      backgroundColor: data.customizations.backgroundColor,
-                      textColor: data.customizations.textColor,
-                      buttonColor: data.customizations.buttonColor,
-                      buttonTextColor: data.customizations.buttonTextColor,
-                    },
-                    components: template.structure.components.map((component: any) => {
-                      if (component.type === 'header') {
-                        return {
-                          ...component,
-                          content: data.customizations.heading
-                        };
-                      } else if (component.type === 'text') {
-                        return {
-                          ...component,
-                          content: data.customizations.description
-                        };
-                      } else if (component.type === 'form') {
-                        return {
-                          ...component,
-                          button: {
-                            ...component.button,
-                            text: data.customizations.buttonText
-                          }
-                        };
-                      }
-                      return component;
-                    })
-                  }
-                }}
-                className="h-full w-full"
+        <div className="lg:col-span-3 sticky top-6 space-y-4">
+          <div className="p-4 rounded-lg border bg-card shadow-sm">
+            <h2 className="text-lg font-semibold mb-2">Preview</h2>
+            <p className="text-muted-foreground text-sm mb-6">This is how your waitlist page will appear to visitors</p>
+            <div className="overflow-hidden rounded-lg border">
+              <WaitlistTemplatePreview
+                template={template}
+                customizations={data.customizations}
+                className="w-full"
               />
-            </CardContent>
-          </Card>
+            </div>
+            <div className="mt-4 text-sm text-muted-foreground text-center">
+              <p>Preview scaled down. <a href={`http://${project.subdomain}.${window.location.host.split('.').slice(1).join('.')}`} target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">View full page</a></p>
+            </div>
+          </div>
         </div>
       </div>
     </AppLayout>

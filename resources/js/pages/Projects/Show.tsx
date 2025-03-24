@@ -16,7 +16,7 @@ interface ProjectShowProps {
 export default function ShowProject({ project, stats }: ProjectShowProps) {
   // Ensure project name is never empty in breadcrumbs
   const projectName = project.data.name || (project.data.id ? `Project ${project.data.id}` : "New Project");
-  
+
   const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Projects', href: '/projects' },
     { title: projectName, href: `/projects/${project.data.id}` },
@@ -25,9 +25,9 @@ export default function ShowProject({ project, stats }: ProjectShowProps) {
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title={`${projectName} - Dashboard`} />
-      
+
       {/* Project Header */}
-      <div className="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-center">
+      <div className="p-4 flex flex-col justify-between gap-4 md:flex-row md:items-center">
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold tracking-tight">{projectName}</h1>
@@ -46,7 +46,7 @@ export default function ShowProject({ project, stats }: ProjectShowProps) {
             </a>
           </p>
         </div>
-        
+
         {/* Action Buttons */}
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" size="sm" asChild>
@@ -64,7 +64,7 @@ export default function ShowProject({ project, stats }: ProjectShowProps) {
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="px-4 grid gap-6 md:grid-cols-2">
         {/* Key Metrics Card */}
         <Card>
           <CardHeader>
@@ -154,7 +154,7 @@ export default function ShowProject({ project, stats }: ProjectShowProps) {
                 template: project.data.waitlist_template,
               }, null, 2)}
             </pre>
-            
+
             {project.data.waitlist_template ? (
               <div>
                 <div className="py-2">
