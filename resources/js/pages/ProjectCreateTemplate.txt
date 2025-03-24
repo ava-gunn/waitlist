@@ -5,8 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
+import { type WaitlistTemplate } from '@/types/project';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Check } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -19,7 +20,11 @@ const breadcrumbs: BreadcrumbItem[] = [
   },
 ];
 
-export default function CreateProject() {
+interface CreateProjectProps {
+  templates: WaitlistTemplate[];
+}
+
+export default function CreateProject({ templates = [] }: CreateProjectProps) {
   const { data, setData, post, processing, errors } = useForm({
     name: '',
     subdomain: '',
@@ -30,15 +35,12 @@ export default function CreateProject() {
       social_sharing: true,
     },
     is_active: true,
+    template_id: null as number | null,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    post('/projects', {
-      // Allow the server's redirect to take effect
-      preserveScroll: true,
-      preserveState: false
-    });
+    post('/projects');
   };
 
   const handleSubdomainChange = (value: string) => {
@@ -134,6 +136,47 @@ export default function CreateProject() {
                     </p>
                   )}
                 </div>
+
+                {templates.length > 0 && (
+                  <div className="space-y-3 pt-3">
+                    <h3 className="text-sm font-medium">Select a Template <span className="text-destructive">*</span></h3>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      {templates.map((template) => (
+                        <div 
+                          key={template.id}
+                          className={`group relative overflow-hidden rounded-md border cursor-pointer transition-all hover:border-primary ${data.template_id === template.id ? 'ring-2 ring-primary' : ''}`}
+                          onClick={() => setData('template_id', template.id)}
+                        >
+                          <div className="absolute right-2 top-2 z-10">
+                            {data.template_id === template.id && (
+                              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary shadow">
+                                <Check className="size-4 text-primary-foreground" />
+                              </div>
+                            )}
+                          </div>
+                          <div 
+                            className="h-32 w-full bg-cover bg-center"
+                            style={{
+                              backgroundColor: template.structure?.settings?.backgroundColor || '#f3f4f6',
+                              backgroundImage: template.thumbnail_path ? `url(${template.thumbnail_path})` : undefined,
+                            }}
+                            aria-hidden="true"
+                          />
+                          <div className="p-3">
+                            <h4 className="font-medium">{template.name}</h4>
+                            <p className="text-xs text-muted-foreground line-clamp-1">{template.description}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {errors.template_id && (
+                      <p className="text-sm text-destructive flex items-center gap-1">
+                        <AlertCircle className="size-3.5" />
+                        {errors.template_id}
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 <div className="space-y-3 pt-3">
                   <h3 className="text-sm font-medium">Settings</h3>

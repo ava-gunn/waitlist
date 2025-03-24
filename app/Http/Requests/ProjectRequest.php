@@ -33,6 +33,7 @@ class ProjectRequest extends FormRequest
             'settings.collect_name' => ['nullable', 'boolean'],
             'settings.social_sharing' => ['nullable', 'boolean'],
             'is_active' => ['nullable', 'boolean'],
+            'template_id' => ['nullable', 'integer', 'exists:waitlist_templates,id'],
         ];
     }
 
@@ -40,6 +41,7 @@ class ProjectRequest extends FormRequest
     {
         return [
             'subdomain.regex' => 'The subdomain may only contain lowercase letters, numbers, and hyphens. It cannot start or end with a hyphen.',
+            'template_id.exists' => 'The selected template does not exist or is not available.',
         ];
     }
 }

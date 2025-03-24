@@ -7,52 +7,67 @@ import { Head, Link } from '@inertiajs/react';
 import { PlusCircle } from 'lucide-react';
 
 interface ProjectsProps {
-  projects: Project[];
+  projects: Project[] | { data: Project[] };
 }
 
-const breadcrumbs: BreadcrumbItem[] = [
-  {
-    title: 'Projects',
-    href: '/projects',
-  },
-];
+const breadcrumbs: BreadcrumbItem[] = [];
 
-export default function Projects({ projects }: ProjectsProps) {
+export default function Projects({ projects = [] }: ProjectsProps) {
+  // Debug info - expand to see what's in the projects data
+  console.log('Projects received:', JSON.stringify(projects));
+  
+  // Check if projects is data object with a data property (common Laravel API format)
+  const projectsData = Array.isArray(projects) 
+    ? projects 
+    : (projects && typeof projects === 'object' && 'data' in projects && Array.isArray(projects.data)) 
+      ? projects.data 
+      : [];
+      
+  console.log('Processed projects array:', projectsData);
+
+  // New code to better understand the projects data
+  if (projectsData.length > 0) {
+    console.log('First project:', projectsData[0]);
+    console.log('Last project:', projectsData[projectsData.length - 1]);
+  }
+
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Projects" />
-      <div className="mb-8 flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Your Projects</h1>
-        <Button asChild>
-          <Link href="/projects/create" className="flex items-center gap-1">
-            <PlusCircle className="size-4" />
-            <span>New Project</span>
-          </Link>
-        </Button>
-      </div>
-
-      {projects.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center p-6 text-center">
-            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-              <PlusCircle className="size-6 text-primary" />
-            </div>
-            <CardTitle className="mb-2">No projects yet</CardTitle>
-            <CardDescription className="mb-4">
-              Create your first project to start collecting waitlist signups.
-            </CardDescription>
-            <Button asChild>
-              <Link href="/projects/create">Create Project</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {projects.map((project) => (
-            <ProjectCard key={project.id} project={project} />
-          ))}
+      <div className="p-6 md:p-8">
+        <div className="mb-8 flex items-center justify-between">
+          <h1 className="text-2xl font-bold tracking-tight">Your Projects</h1>
+          <Button asChild>
+            <Link href="/projects/create" className="flex items-center gap-1">
+              <PlusCircle className="size-4" />
+              <span>New Project</span>
+            </Link>
+          </Button>
         </div>
-      )}
+
+        {projectsData.length === 0 ? (
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center p-6 text-center">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                <PlusCircle className="size-6 text-primary" />
+              </div>
+              <CardTitle className="mb-2">No projects yet</CardTitle>
+              <CardDescription className="mb-4">
+                Create your first project to start collecting waitlist signups.
+              </CardDescription>
+              <Button asChild>
+                <Link href="/projects/create">Create Project</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {projectsData.map((project) => (
+              <ProjectCard key={project.id} project={project} />
+            ))}
+          </div>
+        )}
+      </div>
     </AppLayout>
   );
 }
