@@ -15,11 +15,11 @@ interface ProjectShowProps {
 
 export default function ShowProject({ project, stats }: ProjectShowProps) {
   // Ensure project name is never empty in breadcrumbs
-  const projectName = project.name || (project.id ? `Project ${project.id}` : "New Project");
+  const projectName = project.data.name || (project.data.id ? `Project ${project.data.id}` : "New Project");
   
   const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Projects', href: '/projects' },
-    { title: projectName, href: `/projects/${project.id}` },
+    { title: projectName, href: `/projects/${project.data.id}` },
   ];
 
   return (

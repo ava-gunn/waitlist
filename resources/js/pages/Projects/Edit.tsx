@@ -16,32 +16,31 @@ interface EditProjectProps {
 }
 
 export default function EditProject({ project }: EditProjectProps) {
-  // Ensure project name is never empty in breadcrumbs
-  const projectName = project.name || (project.id ? `Project ${project.id}` : "New Project");
-  
+  const projectName = project.data.name;
+
   const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Projects', href: '/projects' },
-    { title: projectName, href: `/projects/${project.id}` },
-    { title: 'Edit', href: `/projects/${project.id}/edit` },
+    { title: projectName, href: `/projects/${project.data.id}` },
+    { title: 'Edit', href: `/projects/${project.data.id}/edit` },
   ];
 
   const { data, setData, patch, processing, errors, setError } = useForm({
-    name: project.name,
-    subdomain: project.subdomain,
-    description: project.description || '',
-    logo_path: project.logo_path,
+    name: project.data.name,
+    subdomain: project.data.subdomain,
+    description: project.data.description || '',
+    logo_path: project.data.logo_path,
     logo: null as File | null,
     settings: {
       theme: project.settings?.theme || 'light',
       collect_name: project.settings?.collect_name ?? true,
       social_sharing: project.settings?.social_sharing ?? true,
     },
-    is_active: project.is_active,
+    is_active: project.data.is_active,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    patch(`/projects/${project.id}`, {
+    patch(`/projects/${project.data.id}`, {
       forceFormData: true,
       onSuccess: () => {
         // Reset the file input after successful upload
@@ -57,7 +56,7 @@ export default function EditProject({ project }: EditProjectProps) {
       .toLowerCase()
       .replace(/[^a-z0-9-]/g, '')
       .replace(/^-+|-+$/g, '');
-    
+
     setData('subdomain', formatted);
   };
 
@@ -116,7 +115,7 @@ export default function EditProject({ project }: EditProjectProps) {
                     </p>
                   )}
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="subdomain">
                     Subdomain <span className="text-destructive">*</span>
@@ -172,10 +171,10 @@ export default function EditProject({ project }: EditProjectProps) {
                   <div className="grid gap-2">
                     {data.logo_path && (
                       <div className="flex items-center justify-center rounded-md border bg-muted p-2 h-32">
-                        <img 
-                          src={data.logo_path} 
-                          alt="Project Logo" 
-                          className="max-h-full max-w-full object-contain" 
+                        <img
+                          src={data.logo_path}
+                          alt="Project Logo"
+                          className="max-h-full max-w-full object-contain"
                         />
                       </div>
                     )}
@@ -223,11 +222,11 @@ export default function EditProject({ project }: EditProjectProps) {
 
                 <div className="space-y-3 pt-3">
                   <h3 className="text-sm font-medium">Settings</h3>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="theme">Theme</Label>
-                    <RadioGroup 
-                      id="theme" 
+                    <RadioGroup
+                      id="theme"
                       value={data.settings.theme || 'light'}
                       onValueChange={(value) => setData('settings', { ...data.settings, theme: value as 'light' | 'dark' | 'auto' })}
                       className="flex flex-col space-y-1"

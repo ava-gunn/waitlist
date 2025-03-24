@@ -14,13 +14,13 @@ interface TemplatesIndexProps {
 export default function TemplatesIndex({ project, templates }: TemplatesIndexProps) {
   const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Projects', href: '/projects' },
-    { title: project.name, href: `/projects/${project.id}` },
-    { title: 'Templates', href: `/projects/${project.id}/templates` },
+    { title: project.data.name, href: `/projects/${project.data.id}` },
+    { title: 'Templates', href: `/projects/${project.data.id}/templates` },
   ];
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
-      <Head title={`${project.name} - Select Template`} />
+      <Head title={`${project.data.name} - Select Template`} />
       
       <div className="mb-6 flex items-center justify-between">
         <div>
@@ -28,7 +28,7 @@ export default function TemplatesIndex({ project, templates }: TemplatesIndexPro
           <p className="text-muted-foreground">Choose a template for your waitlist landing page</p>
         </div>
         <Button variant="outline" asChild>
-          <Link href={`/projects/${project.id}`}>
+          <Link href={`/projects/${project.data.id}`}>
             <ArrowLeft className="mr-1 size-4" /> 
             Back to Project
           </Link>
@@ -40,8 +40,8 @@ export default function TemplatesIndex({ project, templates }: TemplatesIndexPro
           <TemplateCard 
             key={template.id} 
             template={template} 
-            projectId={project.id} 
-            isSelected={project.waitlist_templates?.some(t => 
+            projectId={project.data.id} 
+            isSelected={project.data.waitlist_templates?.some(t => 
               t.id === template.id && t.pivot?.is_active
             )}
           />

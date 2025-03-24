@@ -13,24 +13,6 @@ interface ProjectsProps {
 const breadcrumbs: BreadcrumbItem[] = [];
 
 export default function Projects({ projects = [] }: ProjectsProps) {
-  // Debug info - expand to see what's in the projects data
-  console.log('Projects received:', JSON.stringify(projects));
-  
-  // Check if projects is data object with a data property (common Laravel API format)
-  const projectsData = Array.isArray(projects) 
-    ? projects 
-    : (projects && typeof projects === 'object' && 'data' in projects && Array.isArray(projects.data)) 
-      ? projects.data 
-      : [];
-      
-  console.log('Processed projects array:', projectsData);
-
-  // New code to better understand the projects data
-  if (projectsData.length > 0) {
-    console.log('First project:', projectsData[0]);
-    console.log('Last project:', projectsData[projectsData.length - 1]);
-  }
-
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Projects" />
@@ -45,7 +27,7 @@ export default function Projects({ projects = [] }: ProjectsProps) {
           </Button>
         </div>
 
-        {projectsData.length === 0 ? (
+        {projects.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center p-6 text-center">
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
@@ -62,7 +44,7 @@ export default function Projects({ projects = [] }: ProjectsProps) {
           </Card>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {projectsData.map((project) => (
+            {projects.map((project) => (
               <ProjectCard key={project.id} project={project} />
             ))}
           </div>

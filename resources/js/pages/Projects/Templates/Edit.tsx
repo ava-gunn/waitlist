@@ -17,9 +17,9 @@ interface TemplateEditProps {
 export default function TemplateEdit({ project, template }: TemplateEditProps) {
   const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Projects', href: '/projects' },
-    { title: project.name, href: `/projects/${project.id}` },
-    { title: 'Templates', href: `/projects/${project.id}/templates` },
-    { title: 'Customize', href: `/projects/${project.id}/templates/${template.id}/edit` },
+    { title: project.data.name, href: `/projects/${project.data.id}` },
+    { title: 'Templates', href: `/projects/${project.data.id}/templates` },
+    { title: 'Customize', href: `/projects/${project.data.id}/templates/${template.id}/edit` },
   ];
 
   const initialCustomizations = template.pivot?.customizations || {};
@@ -42,12 +42,12 @@ export default function TemplateEdit({ project, template }: TemplateEditProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    patch(`/projects/${project.id}/templates/${template.id}`);
+    patch(`/projects/${project.data.id}/templates/${template.id}`);
   };
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
-      <Head title={`${project.name} - Customize Template`} />
+      <Head title={`${project.data.name} - Customize Template`} />
 
       <div className="mb-6 flex items-center justify-between">
         <div>
@@ -56,7 +56,7 @@ export default function TemplateEdit({ project, template }: TemplateEditProps) {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" asChild>
-            <Link href={`/projects/${project.id}`}>
+            <Link href={`/projects/${project.data.id}`}>
               <ArrowLeft className="mr-1 size-4" />
               Back to Project
             </Link>
@@ -247,7 +247,7 @@ export default function TemplateEdit({ project, template }: TemplateEditProps) {
                 <div className="h-3 w-3 rounded-full bg-yellow-500" />
                 <div className="h-3 w-3 rounded-full bg-green-500" />
                 <div className="ml-3 flex-1 rounded-md border border-border bg-background px-2 py-1 text-center text-xs font-medium text-muted-foreground">
-                  {project.full_url}
+                  {project.data.full_url}
                 </div>
               </div>
             </CardHeader>
@@ -284,7 +284,7 @@ export default function TemplateEdit({ project, template }: TemplateEditProps) {
                       />
                     </div>
                     
-                    {project.settings?.collect_name && (
+                    {project.data.settings?.collect_name && (
                       <div className="space-y-2">
                         <Label htmlFor="preview-name" className="block" style={{ color: data.customizations.textColor }}>
                           Name
